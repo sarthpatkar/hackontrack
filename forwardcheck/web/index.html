@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ForwardCheck</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f9d6b'/%3E%3Cpath d='M8 17l5 5 11-12' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f6f7f4; --surface:#fff; --ink:#16201b; --muted:#5c6b63; --line:#dfe5e0; --accent:#1f9d6b; --accent-ink:#fff;
+  --ok:#17794f; --ok-bg:#e3f4ec; --bad:#b3261e; --bad-bg:#fdeae8; --warn:#8a5a00; --warn-bg:#fdf1d8;
+  --old:#5b4bb0; --old-bg:#ece9fa; --unk:#475569; --unk-bg:#e8ecf1; --shadow:0 1px 2px rgba(0,0,0,.05),0 6px 20px rgba(20,40,30,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#18211c; --ink:#e8efe9; --muted:#9fb0a6; --line:#2a3731; --accent:#3cc78d; --accent-ink:#06130d;
+  --ok:#6fe0b0; --ok-bg:#143325; --bad:#ff9a92; --bad-bg:#3a1a18; --warn:#f3c76a; --warn-bg:#352a0e;
+  --old:#b9aef5; --old-bg:#262046; --unk:#b4c0cf; --unk-bg:#222b36; --shadow:none;}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#18211c; --ink:#e8efe9; --muted:#9fb0a6; --line:#2a3731; --accent:#3cc78d; --accent-ink:#06130d;
+  --ok:#6fe0b0; --ok-bg:#143325; --bad:#ff9a92; --bad-bg:#3a1a18; --warn:#f3c76a; --warn-bg:#352a0e;
+  --old:#b9aef5; --old-bg:#262046; --unk:#b4c0cf; --unk-bg:#222b36; --shadow:none;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Noto Sans Devanagari",sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 64px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0 8px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:-.01em}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center}
+.logo svg{width:20px;height:20px}
+.hdr-right{display:flex;gap:8px;align-items:center}
+.pill{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--surface)}
+.pill.bad{color:var(--bad);border-color:var(--bad)}
+button.ghost{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:5px 9px;cursor:pointer;font-size:13px}
+h1{font-size:clamp(26px,5vw,38px);line-height:1.15;margin:18px 0 6px;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:0 0 20px;max-width:60ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.input{padding:14px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.tab{flex:0 0 auto;display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--muted);
+  padding:7px 12px;border-radius:999px;cursor:pointer;font-size:14px}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.tab:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 60%,transparent);outline-offset:2px}
+textarea,input[type=url],select{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:130px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px dashed var(--line);background:none;color:var(--muted);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer}
+.chip:hover{color:var(--ink);border-color:var(--muted)}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:26px 14px;text-align:center;color:var(--muted);cursor:pointer;background:var(--bg)}
+.drop.over{border-color:var(--accent);color:var(--ink)}
+.drop b{color:var(--ink)}
+.preview{max-width:100%;max-height:220px;border-radius:10px;margin-top:10px;border:1px solid var(--line)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.row .grow{flex:1}
+label.small{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px}
+select{width:auto;padding:8px 10px}
+.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:12px 22px;font-weight:700;font-size:16px;cursor:pointer}
+.primary:disabled{opacity:.55;cursor:not-allowed}
+.rec{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.recbtn{width:56px;height:56px;border-radius:50%;border:0;background:var(--bad);color:#fff;font-size:22px;cursor:pointer}
+.recbtn.on{animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(179,38,30,.5)}100%{box-shadow:0 0 0 16px rgba(179,38,30,0)}}
+.hide{display:none!important}
+.progress{margin:22px 0 6px;padding:14px 16px}
+.steps{display:flex;gap:6px;flex-wrap:wrap;list-style:none;margin:0;padding:0}
+.steps li{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line)}
+.steps li.active{color:var(--ink);border-color:var(--accent)}
+.steps li.done{color:var(--ok)}
+.spin{width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.note{color:var(--muted);font-size:14px;margin:8px 2px}
+.err{margin:16px 0;padding:12px 14px;border-radius:12px;background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad)}
+.results{display:grid;gap:14px;margin-top:16px}
+.res{padding:16px;border-left:6px solid var(--line)}
+.res.VERIFIED{border-left-color:var(--ok)} .res.FALSE{border-left-color:var(--bad)} .res.OUTDATED{border-left-color:var(--old)}
+.res.PARTLY_SUPPORTED{border-left-color:var(--warn)} .res.CANNOT_BE_CONFIRMED{border-left-color:var(--unk)}
+.claim{font-weight:600;font-size:17px;margin:0 0 10px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-weight:700;font-size:14px}
+.badge.VERIFIED{background:var(--ok-bg);color:var(--ok)} .badge.FALSE{background:var(--bad-bg);color:var(--bad)}
+.badge.OUTDATED{background:var(--old-bg);color:var(--old)} .badge.PARTLY_SUPPORTED{background:var(--warn-bg);color:var(--warn)}
+.badge.CANNOT_BE_CONFIRMED{background:var(--unk-bg);color:var(--unk)}
+.meta{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
+.tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.sect{margin-top:12px}
+.sect h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sect p{margin:0}
+.ev{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ev li{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.ev .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
+.ev .src{font-weight:600}
+.ev q{display:block;margin:6px 0;color:var(--ink);font-size:14.5px;quotes:"“" "”"}
+.ev a{font-size:13px;color:var(--accent);word-break:break-all}
+.stance{font-size:11px;font-weight:700;border-radius:6px;padding:1px 7px;text-transform:uppercase;letter-spacing:.04em}
+.stance.supports{background:var(--ok-bg);color:var(--ok)} .stance.contradicts{background:var(--bad-bg);color:var(--bad)}
+.stance.related{background:var(--unk-bg);color:var(--unk)}
+.actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.actions button,.actions a{font-size:13px;border:1px solid var(--line);background:none;color:var(--ink);border-radius:9px;padding:6px 11px;cursor:pointer;text-decoration:none}
+.skeleton{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--line),transparent,var(--line));background-size:200% 100%;animation:sk 1.2s infinite;margin-top:10px;width:60%}
+@keyframes sk{to{background-position:-200% 0}}
+details{margin-top:10px;font-size:13px;color:var(--muted)}
+.legend{margin-top:34px;padding:16px}
+.legend h3{margin:0 0 10px;font-size:16px}
+.legend dl{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;margin:0;font-size:14px;align-items:center}
+.legend dd{margin:0;color:var(--muted)}
+footer{margin-top:26px;font-size:13px;color:var(--muted)}
+@media (max-width:520px){.primary{width:100%}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l5 5L19 7"/></svg></span>ForwardCheck</div>
+    <div class="hdr-right"><span id="status" class="pill">checking status…</span><button class="ghost" id="theme" aria-label="Toggle dark mode">◐</button></div>
+  </header>
+
+  <h1>Is this forward true?</h1>
+  <p class="sub">Paste a message, or add a screenshot, voice note, PDF or link. We find each claim, check it against reliable sources, and show you the evidence.</p>
+
+  <section class="card input" aria-label="Input">
+    <div class="tabs" role="tablist" id="tabs"></div>
+
+    <div id="p-text" class="panel">
+      <textarea id="text" placeholder="Paste the forwarded message here (English, हिन्दी or मराठी)…" aria-label="Forwarded message"></textarea>
+      <div class="chips" id="examples" aria-label="Example messages"></div>
+    </div>
+    <div id="p-image" class="panel hide">
+      <div class="drop" data-for="image" tabindex="0" role="button" aria-label="Choose a screenshot"><div><b>Drop a screenshot</b> or click to choose</div><div class="note">PNG, JPG, WebP · text in English, Hindi or Marathi</div></div>
+      <input type="file" id="f-image" accept="image/*" class="hide"><img id="pv-image" class="preview hide" alt="Screenshot preview">
+    </div>
+    <div id="p-audio" class="panel hide">
+      <div class="rec">
+        <button class="recbtn" id="rec" aria-label="Record voice note">●</button>
+        <div><div id="rec-state">Tap to record a voice note</div><div class="note" id="rec-time">or upload an audio file below</div></div>
+      </div>
+      <div class="drop" data-for="audio" tabindex="0" role="button" style="margin-top:12px;padding:14px" aria-label="Choose an audio file"><div><b>Upload audio</b> (WhatsApp voice notes: .ogg / .opus / .mp3 / .m4a)</div></div>
+      <input type="file" id="f-audio" accept="audio/*,.ogg,.opus,.m4a,.amr" class="hide"><audio id="pv-audio" controls class="hide" style="width:100%;margin-top:10px"></audio>
+    </div>
+    <div id="p-pdf" class="panel hide">
+      <div class="drop" data-for="pdf" tabindex="0" role="button" aria-label="Choose a PDF"><div><b>Drop a PDF</b> or click to choose</div><div class="note">Long documents are fine: we pick the most check-worthy claims</div></div>
+      <input type="file" id="f-pdf" accept="application/pdf,.pdf" class="hide"><div id="pv-pdf" class="note"></div>
+    </div>
+    <div id="p-url" class="panel hide">
+      <input type="url" id="url" placeholder="https://… link to an article or post" aria-label="Link">
+    </div>
+
+    <div class="row">
+      <label class="small">Reply in
+        <select id="lang" aria-label="Reply language">
+          <option value="">Same as message</option><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option>
+        </select></label>
+      <span class="grow"></span>
+      <button class="primary" id="go">Check this forward</button>
+    </div>
+  </section>
+
+  <section id="progress" class="card progress hide" aria-live="polite">
+    <ol class="steps" id="steps"></ol>
+  </section>
+  <div id="note" class="note hide"></div>
+  <div id="error" class="err hide" role="alert"></div>
+  <section id="results" class="results" aria-live="polite"></section>
+
+  <section class="card legend">
+    <h3>What the verdicts mean</h3>
+    <dl id="legend"></dl>
+  </section>
+  <footer>ForwardCheck only uses the reliable sources it finds. If it finds none, it says so instead of guessing. Always read the evidence yourself.</footer>
+</div>
+
+<script>
+const LABELS={
+  VERIFIED:{en:"Verified",hi:"सत्यापित",mr:"पडताळले (खरे)",icon:"✓",d:"Reliable sources support the whole claim."},
+  FALSE:{en:"False",hi:"गलत",mr:"खोटे",icon:"✕",d:"Reliable sources contradict the claim."},
+  OUTDATED:{en:"Outdated",hi:"पुराना",mr:"कालबाह्य",icon:"⏳",d:"It was true or announced earlier, but newer sources show it changed."},
+  PARTLY_SUPPORTED:{en:"Partly supported",hi:"आंशिक रूप से सही",mr:"अंशतः बरोबर",icon:"≈",d:"Some parts hold, some are wrong or lack context."},
+  CANNOT_BE_CONFIRMED:{en:"Cannot be confirmed",hi:"पुष्टि नहीं हो सकी",mr:"पुष्टी करता आली नाही",icon:"?",d:"No reliable source confirms or contradicts it."}
+};
+const UI={
+  claim:{en:"Claim",hi:"दावा",mr:"दावा"}, wrong:{en:"What's wrong / right",hi:"क्या गलत / सही है",mr:"काय चुकीचे / बरोबर आहे"},
+  summary:{en:"In simple words",hi:"आसान शब्दों में",mr:"सोप्या शब्दांत"}, evidence:{en:"Evidence",hi:"सबूत",mr:"पुरावा"}
+};
+const STEPS=[["ingest","Read"],["claims","Find claims"],["evidence","Check sources"],["done","Done"]];
+const TABS=[["text","Message","✎"],["image","Screenshot","▣"],["audio","Voice note","🎤"],["pdf","PDF","📄"],["url","Link","🔗"]];
+const EXAMPLES=[
+  "Government will give free laptops to all students from next month. Register at the link and forward this to 10 groups.",
+  "Drinking hot water with lemon every morning cures diabetes completely, doctors don't want you to know.",
+  "सरकार 1 नवंबर से हर परिवार को 5000 रुपये देगी। जल्दी रजिस्टर करें।"
+];
+const $=id=>document.getElementById(id);
+let tab="text", files={image:null,audio:null,pdf:null}, recBlob=null, lastResults=[], busy=false;
+
+function el(tag,attrs={},...kids){
+  const e=document.createElement(tag);
+  for(const[k,v]of Object.entries(attrs)){ if(k==="class")e.className=v; else if(k==="text")e.textContent=v; else e.setAttribute(k,v); }
+  for(const kid of kids){ if(kid==null)continue; e.append(kid.nodeType?kid:document.createTextNode(kid)); }
+  return e;
+}
+const safeUrl=u=>{try{const x=new URL(u);return(x.protocol==="http:"||x.protocol==="https:")?x.href:null}catch{return null}};
+
+// ---- theme + status
+$("theme").onclick=()=>{const r=document.documentElement;const dark=getComputedStyle(r).getPropertyValue("--bg").trim()==="#0f1512";r.dataset.theme=dark?"light":"dark";};
+fetch("/api/health").then(r=>r.json()).then(h=>{
+  const s=$("status");
+  if(!h.llm_providers.length){s.textContent="No AI key configured";s.classList.add("bad");}
+  else s.textContent="AI: "+h.llm_providers.join(" → ");
+}).catch(()=>{$("status").textContent="offline";$("status").classList.add("bad")});
+
+// ---- tabs
+function buildTabs(){
+  const t=$("tabs");
+  TABS.forEach(([id,label,icon])=>{
+    const b=el("button",{class:"tab",role:"tab",id:"t-"+id,"aria-selected":id===tab},el("span",{"aria-hidden":"true",text:icon}),label);
+    b.onclick=()=>selectTab(id); t.append(b);
+  });
+}
+function selectTab(id){
+  tab=id;
+  TABS.forEach(([x])=>{ $("t-"+x).setAttribute("aria-selected",x===id); $("p-"+x).classList.toggle("hide",x!==id); });
+}
+buildTabs();
+EXAMPLES.forEach(x=>{const c=el("button",{class:"chip",type:"button",text:x.slice(0,46)+"…"});c.onclick=()=>{$("text").value=x;selectTab("text")};$("examples").append(c)});
+$("legend").append(...Object.entries(LABELS).flatMap(([k,v])=>[el("dt",{},el("span",{class:"badge "+k},v.icon+" "+v.en)),el("dd",{text:v.d})]));
+
+// ---- file pickers
+document.querySelectorAll(".drop").forEach(d=>{
+  const kind=d.dataset.for, input=$("f-"+kind);
+  const open=()=>input.click();
+  d.onclick=open; d.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}};
+  ["dragover","dragenter"].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add("over")}));
+  ["dragleave","drop"].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove("over")}));
+  d.addEventListener("drop",e=>{ if(e.dataTransfer.files[0]) setFile(kind,e.dataTransfer.files[0]); });
+  input.onchange=()=>{ if(input.files[0]) setFile(kind,input.files[0]); };
+});
+function setFile(kind,f){
+  files[kind]=f;
+  if(kind==="image"){const p=$("pv-image");p.src=URL.createObjectURL(f);p.classList.remove("hide");}
+  if(kind==="audio"){recBlob=null;const p=$("pv-audio");p.src=URL.createObjectURL(f);p.classList.remove("hide");$("rec-state").textContent=f.name;}
+  if(kind==="pdf"){$("pv-pdf").textContent="Selected: "+f.name+" ("+Math.round(f.size/1024)+" KB)";}
+}
+
+// ---- voice recording
+let rec=null,chunks=[],tmr=null,t0=0;
+$("rec").onclick=async()=>{
+  if(rec&&rec.state==="recording"){rec.stop();return;}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    rec=new MediaRecorder(stream); chunks=[];
+    rec.ondataavailable=e=>chunks.push(e.data);
+    rec.onstop=()=>{
+      clearInterval(tmr); stream.getTracks().forEach(t=>t.stop()); $("rec").classList.remove("on"); $("rec").textContent="●";
+      const type=rec.mimeType||"audio/webm"; const blob=new Blob(chunks,{type});
+      const ext=type.includes("mp4")?"m4a":type.includes("ogg")?"ogg":"webm";
+      recBlob=new File([blob],"recording."+ext,{type}); files.audio=recBlob;
+      const p=$("pv-audio"); p.src=URL.createObjectURL(blob); p.classList.remove("hide"); $("rec-state").textContent="Recorded. Tap to record again.";
+    };
+    rec.start(); t0=Date.now(); $("rec").classList.add("on"); $("rec").textContent="■"; $("rec-state").textContent="Recording… tap to stop";
+    tmr=setInterval(()=>{$("rec-time").textContent=Math.round((Date.now()-t0)/1000)+" s"},250);
+  }catch(e){$("rec-state").textContent="Microphone not available. Upload an audio file instead.";}
+};
+
+// ---- progress UI
+function showSteps(){
+  const o=$("steps"); o.replaceChildren(...STEPS.map(([id,l])=>el("li",{id:"s-"+id},l)));
+}
+function setStep(id){
+  let reached=false;
+  STEPS.forEach(([s])=>{
+    const li=$("s-"+s); li.className=""; li.querySelector(".spin")?.remove();
+    if(s===id){li.className="active"; if(id!=="done")li.prepend(el("span",{class:"spin"}));reached=true;} else if(!reached){li.className="done";}
+  });
+  if(id==="done")$("s-done").className="done";
+}
+
+// ---- results rendering
+const cards={};
+function langOf(l){return ["en","hi","mr"].includes(l)?l:"en"}
+function skeleton(c){
+  const card=el("article",{class:"card res",id:"card-"+c.id},el("p",{class:"claim",text:c.text}),el("div",{class:"skeleton"}),el("div",{class:"skeleton",style:"width:40%"}));
+  cards[c.id]=card; $("results").append(card);
+}
+function renderResult(r,lang){
+  const v=r.verdict, L=LABELS[v.label], card=cards[r.claim.id]||el("article",{class:"card res",id:"card-"+r.claim.id});
+  if(!cards[r.claim.id]){cards[r.claim.id]=card;$("results").append(card);}
+  card.className="card res "+v.label;
+  const kids=[];
+  kids.push(el("div",{},el("span",{class:"badge "+v.label},L.icon+" "+(L[lang]||L.en)),
+    el("span",{class:"meta"},v.confidence?el("span",{class:"tag",text:v.confidence+" confidence"}):null,r.cached?el("span",{class:"tag",text:"from cache"}):null)));
+  kids.push(el("p",{class:"claim",style:"margin-top:10px",text:r.claim.text}));
+  if(v.what_is_wrong) kids.push(el("div",{class:"sect"},el("h4",{text:UI.wrong[lang]}),el("p",{text:v.what_is_wrong})));
+  if(v.summary&&v.summary!==v.what_is_wrong) kids.push(el("div",{class:"sect"},el("h4",{text:UI.summary[lang]}),el("p",{text:v.summary})));
+  const cited=r.evidence.filter(e=>v.evidence_ids.includes(e.id));
+  const others=r.evidence.filter(e=>!v.evidence_ids.includes(e.id));
+  const evList=(arr)=>el("ul",{class:"ev"},...arr.map(e=>{
+    const st=v.evidence_stances[e.id], u=safeUrl(e.url);
+    return el("li",{},el("div",{class:"top"},el("span",{class:"src",text:e.source_name}),e.published_at?el("span",{class:"tag",text:e.published_at}):el("span",{class:"tag",text:"date unknown"}),st?el("span",{class:"stance "+st,text:st}):null),
+      el("q",{text:e.snippet}), u?el("a",{href:u,target:"_blank",rel:"noopener noreferrer",text:u}):null);
+  }));
+  if(cited.length) kids.push(el("div",{class:"sect"},el("h4",{text:UI.evidence[lang]}),evList(cited)));
+  else kids.push(el("div",{class:"sect"},el("h4",{text:UI.evidence[lang]}),el("p",{class:"note",text:"No supporting source was cited."})));
+  if(others.length||v.reasoning_en||r.guardrail_note){
+    const d=el("details",{},el("summary",{text:"How we got here"}));
+    if(v.reasoning_en) d.append(el("p",{text:"Reasoning: "+v.reasoning_en}));
+    if(r.guardrail_note) d.append(el("p",{text:"Safety check: "+r.guardrail_note+" (verdict set to Cannot be confirmed)."}));
+    if(others.length){d.append(el("p",{text:"Other sources looked at (not relied on):"}),evList(others));}
+    kids.push(d);
+  }
+  const text=shareText(r,lang);
+  const copy=el("button",{type:"button",text:"Copy"}); copy.onclick=async()=>{try{await navigator.clipboard.writeText(text);copy.textContent="Copied ✓"}catch{copy.textContent="Copy failed"}setTimeout(()=>copy.textContent="Copy",1500)};
+  const wa=el("a",{href:"https://wa.me/?text="+encodeURIComponent(text),target:"_blank",rel:"noopener noreferrer",text:"Share on WhatsApp"});
+  kids.push(el("div",{class:"actions"},copy,wa));
+  card.replaceChildren(...kids);
+}
+function shareText(r,lang){
+  const v=r.verdict,L=LABELS[v.label];
+  const lines=[`*${UI.claim[lang]}:* ${r.claim.text}`,`*${L.icon} ${L[lang]||L.en}*`];
+  if(v.what_is_wrong)lines.push(v.what_is_wrong);
+  r.evidence.filter(e=>v.evidence_ids.includes(e.id)).slice(0,2).forEach(e=>lines.push(`• ${e.source_name}${e.published_at?" ("+e.published_at+")":""}: ${e.url}`));
+  lines.push("— checked with ForwardCheck");
+  return lines.join("\n");
+}
+
+// ---- submit
+function resetOutput(){
+  $("results").replaceChildren(); for(const k in cards)delete cards[k];
+  $("error").classList.add("hide"); $("note").classList.add("hide");
+}
+function showError(m){const e=$("error");e.textContent=m;e.classList.remove("hide");}
+$("go").onclick=async()=>{
+  if(busy)return;
+  const fd=new FormData(); fd.append("language",$("lang").value);
+  if(tab==="text"){const v=$("text").value.trim(); if(!v)return showError("Please paste a message first."); fd.append("text",v);}
+  else if(tab==="url"){const v=$("url").value.trim(); if(!v)return showError("Please enter a link."); fd.append("url",v);}
+  else {const f=files[tab]; if(!f)return showError("Please choose or record a file first."); fd.append("file",f,f.name);}
+  resetOutput(); busy=true; $("go").disabled=true; $("go").textContent="Checking…";
+  $("progress").classList.remove("hide"); showSteps(); setStep("ingest");
+  let lang="en";
+  try{
+    const resp=await fetch("/api/check/stream",{method:"POST",body:fd});
+    if(!resp.ok||!resp.body){const j=await resp.json().catch(()=>({}));throw new Error(j.error||"Request failed ("+resp.status+")");}
+    const reader=resp.body.getReader(), dec=new TextDecoder(); let buf="";
+    const handle=ev=>{
+      if(ev.event==="stage")setStep(ev.stage);
+      else if(ev.event==="claims"){lang=langOf(ev.language); if(!ev.claims.length){setStep("done");} else {setStep("evidence"); ev.claims.forEach(skeleton);}}
+      else if(ev.event==="result")renderResult(ev.result,lang);
+      else if(ev.event==="done"){setStep("done"); if(ev.summary.note){$("note").textContent=ev.summary.note;$("note").classList.remove("hide");}
+        if(!$("results").children.length)showError(ev.summary.note||"No checkable claim found in this content.");
+        else {const s=Math.round(ev.summary.elapsed_ms/1000); $("note").textContent=((ev.summary.note?ev.summary.note+" · ":"")+"Checked in "+s+" s"); $("note").classList.remove("hide");}}
+      else if(ev.event==="error"){showError(ev.message);$("progress").classList.add("hide");}
+    };
+    for(;;){
+      const {value,done}=await reader.read(); if(done)break;
+      buf+=dec.decode(value,{stream:true}); let i;
+      while((i=buf.indexOf("\n"))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1); if(line)handle(JSON.parse(line));}
+    }
+  }catch(e){showError(e.message||"Something went wrong."); $("progress").classList.add("hide");}
+  busy=false; $("go").disabled=false; $("go").textContent="Check this forward";
+};
+</script>
+</body>
+</html>

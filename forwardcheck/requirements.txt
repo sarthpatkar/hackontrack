@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+httpx
+pydantic
+python-multipart
+pymupdf
+trafilatura
+ddgs
+pytesseract
+pillow
+python-dotenv
+pytest
+pytest-asyncio
