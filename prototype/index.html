@@ -1,0 +1,1441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#008069">
+<title>ForwardCheck on WhatsApp</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%2300a884'/%3E%3Cpath d='M9 17l5 5 9-11' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --app:#f0f2f5; --list:#fff; --sel:#f0f2f5; --hover:#f5f6f6; --line:#e9edef;
+  --ink:#111b21; --muted:#667781; --head:#008069; --head-ink:#fff; --accent:#00a884;
+  --in:#fff; --out:#d9fdd3; --chat:#efeae2; --doodle:#d9d2c5;
+  --composer:#f0f2f5; --pill:#fff; --sys:#fff5c4; --sys-ink:#54656f;
+  --link:#027eb5; --tick:#53bdeb; --tick-off:#8696a0; --shadow:0 1px .5px rgba(11,20,26,.13);
+  --search:#f0f2f5; --chipbg:#f0f2f5; --chipon:#d9fdd3; --chipon-ink:#008069; --badge:#25d366;
+  --panel:#fff; --gap:#f0f2f5; --red:#ea0038;
+}
+@media (prefers-color-scheme:dark){:root{
+  --app:#111b21; --list:#111b21; --sel:#2a3942; --hover:#202c33; --line:#222d34;
+  --ink:#e9edef; --muted:#8696a0; --head:#202c33; --head-ink:#e9edef;
+  --in:#202c33; --out:#005c4b; --chat:#0b141a; --doodle:#182229;
+  --composer:#202c33; --pill:#2a3942; --sys:#182229; --sys-ink:#ffd279;
+  --link:#53bdeb; --shadow:none; --search:#202c33; --chipbg:#202c33; --chipon:#103529; --chipon-ink:#21c063;
+  --panel:#111b21; --gap:#0b141a; color-scheme:dark;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--app);color:var(--ink);overflow:hidden;
+  font:14.2px/19px "Segoe UI","Helvetica Neue",Helvetica,"Noto Sans","Noto Sans Devanagari",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+svg{display:block;fill:currentColor}
+:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+[hidden]{display:none!important}
+
+.app{height:100%;display:grid;grid-template-columns:64px clamp(300px,30vw,420px) minmax(0,1fr);max-width:1700px;margin:0 auto;background:var(--list)}
+.app.info-open{grid-template-columns:64px clamp(300px,26vw,400px) minmax(0,1fr) 340px}
+
+/* rail */
+.rail{background:var(--app);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:6px}
+.rail a.rb{text-decoration:none}
+.rail .rb{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.rail .rb.on{background:var(--sel);color:var(--ink)}
+.rail .sp{flex:1}
+.mini{width:30px;height:30px;border-radius:50%;background:#b0bec5;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:600}
+
+/* list */
+.list{display:flex;flex-direction:column;min-width:0;background:var(--list);border-right:1px solid var(--line)}
+.lh{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 6px;
+  padding-top:max(14px,env(safe-area-inset-top,0px))}
+.lh h1{margin:0;font-size:22px;font-weight:700;letter-spacing:-.2px;color:var(--ink)}
+.search{margin:6px 12px 8px;background:var(--search);border-radius:8px;display:flex;align-items:center;gap:14px;padding:0 12px;height:36px;color:var(--muted)}
+.search input{flex:1;min-width:0;border:0;background:none;outline:none;color:var(--ink);font:inherit}
+.search input::placeholder{color:var(--muted)}
+.filters{display:flex;gap:6px;padding:0 12px 8px}
+.fchip{background:var(--chipbg);color:var(--muted);border-radius:999px;padding:5px 12px;font-size:14px}
+.fchip.on{background:var(--chipon);color:var(--chipon-ink);font-weight:500}
+.rows{flex:1;overflow-y:auto;min-height:0}
+.crow{display:grid;grid-template-columns:49px minmax(0,1fr);gap:15px;padding:0 15px;width:100%;text-align:left;align-items:center}
+.crow:hover{background:var(--hover)}
+.crow.sel{background:var(--sel)}
+.crow .body{padding:12px 0;border-bottom:1px solid var(--line);min-width:0}
+.crow .l1,.crow .l2{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.crow .nm{font-size:17px;line-height:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;gap:5px;align-items:center}
+.crow .tm{font-size:12px;color:var(--muted);flex:none}
+.crow.unr .tm{color:var(--badge)}
+.crow .pv{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.crow .bd{background:var(--badge);color:#fff;font-size:12px;font-weight:600;min-width:20px;height:20px;border-radius:10px;display:grid;place-items:center;padding:0 5px;flex:none}
+.av{border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:600;flex:none;overflow:hidden}
+.av.s49{width:49px;height:49px;font-size:18px}
+.av.s40{width:40px;height:40px;font-size:15px}
+.vb{flex:none}
+.vb svg{fill:none}
+
+/* chat pane */
+.pane{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative;background:var(--chat)}
+.top{background:var(--head);color:var(--head-ink);display:flex;align-items:center;gap:4px;padding:8px 10px 8px 8px;flex:none;position:relative;z-index:3;
+  padding-top:max(8px,env(safe-area-inset-top,0px));border-left:1px solid var(--line)}
+.ib{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none}
+.ib:hover{background:rgba(127,127,127,.15)}
+.top .back{display:none}
+.who{display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-align:left;padding:2px 4px;border-radius:8px}
+.who .t{min-width:0}
+.who b{display:flex;align-items:center;gap:5px;font-size:16px;font-weight:500;line-height:21px}
+.who small{display:block;font-size:13px;line-height:17px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu{position:absolute;right:10px;top:calc(100% - 6px);background:var(--panel);color:var(--ink);border-radius:8px;
+  box-shadow:0 4px 18px rgba(11,20,26,.28);padding:8px 0;min-width:200px;z-index:6}
+.menu button{display:block;width:100%;text-align:left;padding:11px 22px}
+.menu button:hover{background:var(--hover)}
+
+.scroll{flex:1;min-height:0;overflow-y:auto;position:relative;overscroll-behavior:contain;scroll-behavior:smooth}
+.wall{position:absolute;inset:0;background:var(--doodle);opacity:.6;pointer-events:none;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='26' cy='28' r='7'/%3E%3Cpath d='M86 22l8 8m0-8l-8 8'/%3E%3Cpath d='M122 32q6-10 12 0t12 0'/%3E%3Cpath d='M22 88l6 6 12-14'/%3E%3Crect x='80' y='76' width='16' height='12' rx='3'/%3E%3Cpath d='M126 84a8 8 0 1 0 14 0'/%3E%3Cpath d='M44 138q8-10 16 0'/%3E%3Cpath d='M106 130h18m-9-9v18'/%3E%3Cpath d='M64 52c4-6 12-6 14 0s-4 10-7 14c-3-4-11-8-7-14z'/%3E%3C/g%3E%3C/svg%3E");
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='26' cy='28' r='7'/%3E%3Cpath d='M86 22l8 8m0-8l-8 8'/%3E%3Cpath d='M122 32q6-10 12 0t12 0'/%3E%3Cpath d='M22 88l6 6 12-14'/%3E%3Crect x='80' y='76' width='16' height='12' rx='3'/%3E%3Cpath d='M126 84a8 8 0 1 0 14 0'/%3E%3Cpath d='M44 138q8-10 16 0'/%3E%3Cpath d='M106 130h18m-9-9v18'/%3E%3Cpath d='M64 52c4-6 12-6 14 0s-4 10-7 14c-3-4-11-8-7-14z'/%3E%3C/g%3E%3C/svg%3E")}
+.feed{position:relative;display:flex;flex-direction:column;gap:2px;padding:10px clamp(10px,5%,60px) 14px}
+.date{align-self:center;background:var(--in);color:var(--muted);font-size:12.5px;padding:5px 12px;border-radius:8px;margin:6px 0 8px;box-shadow:var(--shadow)}
+.sys{align-self:center;max-width:min(92%,520px);text-align:center;background:var(--sys);color:var(--sys-ink);font-size:12.5px;line-height:17px;padding:7px 12px;border-radius:8px;margin-bottom:8px;box-shadow:var(--shadow)}
+.row{display:flex;flex-direction:column;max-width:100%}
+.row.in{align-items:flex-start}
+.row.out{align-items:flex-end}
+.row.gap{margin-top:8px}
+.hrow{display:flex;align-items:center;gap:8px;max-width:100%}
+.hrow.gap{margin-top:8px}
+.msg{position:relative;max-width:min(86%,520px);padding:6px 7px 6px 9px;border-radius:8px;box-shadow:var(--shadow);overflow-wrap:anywhere;animation:pop .16s ease-out}
+.hrow .msg{max-width:min(82%,520px)}
+@keyframes pop{from{opacity:0;transform:translateY(5px)}}
+.msg.in{background:var(--in)}
+.msg.out{background:var(--out)}
+.msg.tail.in{border-top-left-radius:0}
+.msg.tail.out{border-top-right-radius:0}
+.msg.tail::before{content:"";position:absolute;top:0;width:9px;height:12px}
+.msg.tail.in::before{left:-8px;background:var(--in);clip-path:polygon(100% 0,0 0,100% 100%)}
+.msg.tail.out::before{right:-8px;background:var(--out);clip-path:polygon(0 0,100% 0,0 100%)}
+.msg b{font-weight:600}
+.msg a{color:var(--link);text-decoration:none;word-break:break-all}
+.msg a:hover{text-decoration:underline}
+.lnk{color:var(--link)}
+.sender{font-size:12.8px;font-weight:600;line-height:18px;margin-bottom:1px}
+.meta{float:right;margin:7px 0 -4px 12px;font-size:11px;line-height:15px;color:var(--muted);display:inline-flex;gap:3px;align-items:center;user-select:none}
+.ticks svg{width:16px;height:11px;stroke:var(--tick-off);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ticks[data-s=sent] .t2{display:none}
+.ticks[data-s=read] svg{stroke:var(--tick)}
+.fwd{display:flex;gap:5px;align-items:center;color:var(--muted);font-style:italic;font-size:12.5px;margin-bottom:3px}
+.fwd svg{width:14px;height:14px}
+.quote{background:rgba(11,20,26,.06);border-left:4px solid var(--accent);border-radius:6px;padding:5px 8px;margin:-1px -2px 5px;font-size:13px;line-height:17px}
+.quote b{display:block;color:var(--accent);font-weight:600}
+.quote span{color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fbtn{width:32px;height:32px;border-radius:50%;background:var(--in);color:var(--muted);display:grid;place-items:center;box-shadow:var(--shadow);flex:none;opacity:0;transition:opacity .12s}
+.hrow:hover .fbtn,.fbtn:focus-visible{opacity:1}
+@media (hover:none){.fbtn{opacity:1}}
+.btns{display:flex;flex-direction:column;gap:2px;margin-top:2px;width:min(86%,360px)}
+.btns button{background:var(--in);color:var(--link);border-radius:8px;padding:10px;text-align:center;font-weight:500;box-shadow:var(--shadow)}
+.btns button:hover{background:var(--hover)}
+.btns.used{opacity:.55;pointer-events:none}
+.lbtn{display:flex;justify-content:center;align-items:center;gap:8px;width:calc(100% + 16px);margin:8px -7px -6px -9px;padding:11px;border-top:1px solid var(--line);color:var(--link);font-weight:500}
+.typing{display:flex;gap:4px;padding:7px 2px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.5;animation:blink 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{40%{opacity:1;transform:translateY(-2px)}}
+
+/* bubble attachments */
+.shot{width:min(240px,100%);border-radius:6px;overflow:hidden;background:#fff;color:#1a1a1a;margin:-1px -2px 4px;font-family:"Noto Sans Devanagari","Segoe UI",sans-serif}
+.shot .bar{display:flex;justify-content:space-between;background:#c62828;color:#fff;font-size:11px;font-weight:700;padding:6px 9px;letter-spacing:.04em}
+.shot .bd{padding:10px 10px 12px}
+.shot h4{margin:0 0 6px;font-size:15px;line-height:20px}
+.shot p{margin:0;font-size:12.5px;line-height:17px;color:#444}
+.voice{display:flex;align-items:center;gap:8px;min-width:230px;padding-top:2px}
+.vplay{width:34px;height:34px;display:grid;place-items:center;color:var(--muted)}
+.vplay svg{width:30px;height:30px}
+.wave{flex:1;display:flex;align-items:center;gap:2px;height:30px}
+.wave i{display:block;width:2.5px;border-radius:2px;background:var(--muted);opacity:.45}
+.wave i.on{background:var(--tick);opacity:1}
+.vdur{position:absolute;left:52px;bottom:5px;font-size:11px;color:var(--muted)}
+.mic{width:38px;height:38px;border-radius:50%;background:#8696a0;display:grid;place-items:center;flex:none;color:#fff}
+.voice-b{padding-bottom:20px}
+.doc{display:flex;gap:10px;align-items:center;background:rgba(11,20,26,.06);border-radius:6px;padding:9px;margin:-1px -2px 4px;min-width:230px}
+.doc .ico{width:38px;height:44px;border-radius:5px;background:#e53935;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;flex:none}
+.doc .nm{font-weight:500;word-break:break-all;line-height:18px}
+.doc .sb{font-size:12px;color:var(--muted)}
+.lp{background:rgba(11,20,26,.06);border-radius:6px;padding:8px 10px;margin:-1px -2px 5px;border-left:4px solid var(--accent)}
+.lp .a{font-weight:600;line-height:18px}
+.lp .b{font-size:12.5px;color:var(--muted);line-height:17px}
+
+/* composer */
+.composer{flex:none;display:flex;align-items:flex-end;gap:6px;background:var(--composer);padding:8px 10px;padding-bottom:max(8px,env(safe-area-inset-bottom,0px));position:relative}
+.pill{flex:1;min-width:0;display:flex;align-items:center;background:var(--pill);border-radius:22px;padding:0 6px;min-height:44px}
+.pill .ib{color:var(--muted);width:38px;height:40px}
+.pill input{flex:1;min-width:0;border:0;background:none;color:var(--ink);font:inherit;font-size:15px;padding:10px 4px;outline:none}
+.pill input::placeholder{color:var(--muted)}
+.send{width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none}
+.rec{display:none;align-items:center;gap:10px;flex:1;padding:0 10px}
+.rec i{width:10px;height:10px;border-radius:50%;background:var(--red);animation:blink2 1s infinite}
+@keyframes blink2{50%{opacity:.25}}
+.composer.recording .pill{display:none}
+.composer.recording .rec{display:flex;min-height:44px}
+.hint{flex:none;background:var(--composer);color:var(--muted);padding:14px 18px;padding-bottom:max(14px,env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;justify-content:center;text-align:center;font-size:13.5px}
+.attach{position:absolute;left:10px;bottom:calc(100% + 6px);width:min(300px,calc(100% - 20px));background:var(--panel);border-radius:16px;padding:18px 12px 10px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;box-shadow:0 6px 24px rgba(11,20,26,.28);z-index:5}
+.attach button{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.attach .c{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;color:#fff}
+
+/* sheet (list message) */
+.scrim{position:absolute;inset:0;background:rgba(11,20,26,.45);z-index:8;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--panel);width:min(100%,480px);border-radius:16px 16px 0 0;padding:6px 0 max(12px,env(safe-area-inset-bottom,0px));max-height:80%;overflow:auto;animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.sheet h3{margin:0;padding:14px 20px 8px;font-size:16px;font-weight:600}
+.sheet button.opt{display:flex;width:100%;text-align:left;gap:14px;padding:11px 20px;align-items:center}
+.sheet button.opt:hover{background:var(--hover)}
+.sheet .rad{width:20px;height:20px;border-radius:50%;border:2px solid var(--muted);flex:none}
+.sheet .o1{font-size:15px}
+.sheet .o2{font-size:13px;color:var(--muted)}
+
+/* info pane */
+.info{display:none;flex-direction:column;background:var(--gap);border-left:1px solid var(--line);min-width:0;min-height:0}
+.app.info-open .info{display:flex}
+.ihead{background:var(--head);color:var(--head-ink);display:flex;align-items:center;gap:14px;padding:8px 14px 8px 10px;height:59px;flex:none;padding-top:max(8px,env(safe-area-inset-top,0px));height:auto;min-height:59px}
+.ihead b{font-weight:500;font-size:16px}
+.iscroll{flex:1;overflow-y:auto}
+.blk{background:var(--panel);margin-bottom:10px;padding:16px 24px}
+.blk.center{display:flex;flex-direction:column;align-items:center;gap:4px;padding:26px 24px 20px;text-align:center}
+.blk.center .av{width:150px;height:150px;font-size:60px;background:var(--accent)}
+.blk.center h2{margin:12px 0 0;font-size:22px;font-weight:400;display:flex;gap:6px;align-items:center}
+.blk.center p{margin:0;color:var(--muted)}
+.blk h4{margin:0 0 10px;font-size:14px;font-weight:400;color:var(--muted)}
+.blk p.d{margin:0;color:var(--ink);line-height:20px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:12px;padding:0 0 13px;position:relative}
+.steps li::before{content:"";position:absolute;left:10px;top:23px;bottom:1px;width:2px;background:var(--line)}
+.steps li:last-child{padding-bottom:2px}
+.steps li:last-child::before{display:none}
+.dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;background:var(--panel);font-size:11px;font-weight:700;color:var(--muted)}
+.steps .tt{font-size:14.5px}
+.steps .d{color:var(--muted);font-size:13px;line-height:17px;overflow-wrap:anywhere}
+li.active .dot{border-color:var(--accent);color:var(--accent);animation:pulse 1s infinite}
+li.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+li.done .d{color:var(--ink)}
+@keyframes pulse{50%{box-shadow:0 0 0 5px rgba(0,168,132,.2)}}
+.legend{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.legend li{display:grid;grid-template-columns:24px 1fr;gap:10px}
+.legend .n{display:block}
+.legend .m{display:block;color:var(--muted);font-size:13px;line-height:17px}
+.biglink{display:flex;justify-content:space-between;align-items:center;color:var(--link);text-decoration:none;font-weight:500}
+.danger{width:100%;text-align:left;color:var(--red);padding:2px 0}
+
+@media (max-width:999px){
+  .app,.app.info-open{display:block}
+  .rail{display:none}
+  .list,.pane,.info{display:none;height:100%;border:0}
+  .app[data-view=list] .list{display:flex}
+  .app[data-view=chat] .pane{display:flex}
+  .app[data-view=info] .info{display:flex}
+  .top .back{display:grid}
+  .feed{padding-inline:10px}
+  .lh{background:var(--head);color:var(--head-ink);padding-bottom:12px}
+  .lh h1{color:var(--head-ink)}
+}
+@media (min-width:1000px){
+  :root{--head:#f0f2f5;--head-ink:#111b21}
+  .sheet{border-radius:12px;margin-bottom:auto;margin-top:auto}
+  .scrim{align-items:center}
+  .send{background:none;color:var(--muted)}
+  .ihead{background:var(--head)}
+}
+@media (min-width:1000px) and (prefers-color-scheme:dark){:root{--head:#202c33;--head-ink:#e9edef}}
+
+/* ---- selection + context menu + forward dialog ---- */
+.selbar{position:absolute;inset:0;background:var(--head);color:var(--head-ink);display:none;align-items:center;gap:6px;padding:0 10px 0 8px;z-index:5;
+  border-left:1px solid var(--line)}
+.app.selmode .selbar{display:flex}
+.selbar b{font-weight:500;font-size:16px;flex:1}
+.hrow{position:relative;border-radius:6px}
+.hrow .chk{display:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);flex:none;place-items:center;color:#fff}
+.app.selmode .hrow .chk{display:grid}
+.hrow.sel{background:rgba(0,168,132,.16)}
+.hrow.sel .chk{background:var(--accent);border-color:var(--accent)}
+.hrow.out{justify-content:flex-end}
+.hrow .chk svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.hrow.sel .chk svg{opacity:1}
+.chev{position:absolute;top:2px;right:2px;width:26px;height:22px;border-radius:50%;display:grid;place-items:center;color:var(--muted);opacity:0;
+  background:linear-gradient(to left,var(--in) 55%,transparent)}
+.msg.out .chev{background:linear-gradient(to left,var(--out) 55%,transparent)}
+.hrow:hover .chev,.chev:focus-visible{opacity:1}
+.app.selmode .chev{display:none}
+@media (hover:none){.chev{display:none}}
+.star{color:#8696a0}
+.ctx{position:fixed;z-index:30;background:var(--panel);color:var(--ink);border-radius:8px;box-shadow:0 4px 20px rgba(11,20,26,.3);padding:8px 0;min-width:170px}
+.ctx button{display:block;width:100%;text-align:left;padding:10px 20px}
+.ctx button:hover{background:var(--hover)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#233138;color:#e9edef;padding:12px 20px;border-radius:8px;z-index:40;
+  box-shadow:0 4px 18px rgba(0,0,0,.3);animation:pop .2s ease-out}
+.dlg{position:fixed;inset:0;background:rgba(11,20,26,.5);z-index:25;display:flex;align-items:center;justify-content:center}
+.dcard{background:var(--panel);width:min(440px,100%);height:min(640px,86%);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.35)}
+.dh{background:var(--head);color:var(--head-ink);display:flex;align-items:center;gap:14px;padding:12px 14px;font-size:17px;font-weight:500;
+  padding-top:max(12px,env(safe-area-inset-top,0px))}
+.dsearch{margin:8px 12px;background:var(--search);border-radius:8px;display:flex;align-items:center;gap:12px;padding:0 12px;height:36px;color:var(--muted)}
+.dsearch input{flex:1;min-width:0;border:0;background:none;outline:none;color:var(--ink);font:inherit}
+.dsec{padding:14px 20px 6px;color:var(--accent);font-size:13.5px;font-weight:500}
+.dlist{flex:1;overflow-y:auto}
+.drow{display:grid;grid-template-columns:22px 40px minmax(0,1fr);gap:14px;align-items:center;width:100%;text-align:left;padding:8px 20px}
+.drow:hover{background:var(--hover)}
+.drow .cb{width:20px;height:20px;border-radius:4px;border:2px solid var(--muted);display:grid;place-items:center}
+.drow.on .cb{background:var(--accent);border-color:var(--accent)}
+.drow .cb svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.drow.on .cb svg{opacity:1}
+.drow .n1{font-size:16px;line-height:21px}
+.drow .n2{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dfoot{display:flex;align-items:center;gap:12px;background:var(--composer);padding:10px 16px;padding-bottom:max(10px,env(safe-area-inset-bottom,0px))}
+.dfoot span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+@media (max-width:999px){.dlg{align-items:stretch}.dcard{width:100%;height:100%;border-radius:0}}
+
+/* desktop composer like WhatsApp Web: + and emoji on the left, mic on the right */
+.ic-plus{display:none}
+@media (min-width:1000px){
+  .pill{background:var(--pill)}
+  #attachBtn{order:-2}.pill .emo{order:-1}#camBtn{display:none}
+  .ic-clip{display:none}.ic-plus{display:block}
+  .composer{padding:10px 16px}
+}
+
+/* ---- backend page ---- */
+:root{--codebg:#f6f8f9;--codeink:#1f2c34;--chip:#e9edef}
+@media (prefers-color-scheme:dark){:root{--codebg:#0b141a;--codeink:#d1d7db;--chip:#2a3942}}
+#backend{position:fixed;inset:0;overflow:auto;background:var(--app);color:var(--ink);display:none;z-index:20}
+body.bk #backend{display:block}
+body.bk .app{display:none}
+.bk-top{position:sticky;top:0;z-index:5;background:var(--head);color:var(--head-ink);display:flex;align-items:center;gap:14px;padding:10px 16px;
+  padding-top:max(10px,env(safe-area-inset-top,0px));border-bottom:1px solid var(--line)}
+.bk-top a{color:inherit;text-decoration:none;display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:8px}
+.bk-top a:hover{background:rgba(127,127,127,.15)}
+.bk-top b{font-weight:500;font-size:16px}
+.bk-wrap{max-width:1120px;margin:0 auto;padding:32px 20px 90px}
+.bk-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:36px;align-items:center}
+.bk-hero h1{margin:0 0 12px;font-size:clamp(26px,4vw,38px);line-height:1.12;letter-spacing:-.02em;text-wrap:balance}
+.bk-hero p{margin:0 0 22px;color:var(--muted);font-size:16px;line-height:24px;max-width:52ch}
+.bk-go{background:var(--accent);color:#fff;border-radius:999px;padding:14px 26px;font-size:16px;font-weight:600;display:inline-flex;gap:10px;align-items:center}
+.bk-go:disabled{opacity:.6;cursor:default}
+.bk-go svg{width:20px;height:20px}
+.bk-mini{background:var(--chat);border-radius:14px;padding:18px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.bk-mini .wall{position:absolute;inset:0}
+.bk-mini .msg{position:relative;max-width:100%}
+.bk-mini .cap{position:relative;align-self:stretch;color:var(--muted);font-size:12.5px;text-align:center}
+.bk-strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:34px 0 8px;font-size:13px}
+.bk-strip .nd{background:var(--chip);border-radius:999px;padding:6px 12px;border:2px solid transparent;transition:all .2s}
+.bk-strip .nd.on{background:var(--panel);border-color:var(--accent);color:var(--accent);font-weight:600}
+.bk-strip .ar{color:var(--muted)}
+.bk-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:30px;margin-top:20px;align-items:start}
+.bk-grid[hidden]{display:none}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px;padding-bottom:16px;position:relative;animation:pop .35s ease-out}
+.tl li::before{content:"";position:absolute;left:16px;top:34px;bottom:-2px;width:2px;background:var(--line)}
+.tl li:last-child::before{display:none}
+.tl .nb{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px}
+.tl .cd{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.tl .tg{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-bottom:4px;flex-wrap:wrap}
+.tl .tg code{background:var(--chip);padding:1px 7px;border-radius:5px;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink)}
+.tl h3{margin:0 0 4px;font-size:16.5px;line-height:22px}
+.tl p{margin:0;color:var(--muted);line-height:21px;font-size:14.5px}
+.tl pre{margin:12px 0 0;background:var(--codebg);color:var(--codeink);border-radius:8px;padding:12px 14px;overflow:auto;
+  font:12.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.tl li.end .nb{background:var(--ink);color:var(--panel)}
+.bk-phone{position:sticky;top:78px;background:var(--chat);border-radius:14px;overflow:hidden;box-shadow:0 2px 14px rgba(11,20,26,.18)}
+.bk-phone .ph{background:var(--head);color:var(--head-ink);padding:10px 14px;font-weight:500;display:flex;gap:10px;align-items:center}
+.bk-phone .pf{position:relative;padding:12px;display:flex;flex-direction:column;gap:6px;max-height:min(70vh,560px);overflow:auto;min-height:160px}
+.bk-phone .msg{max-width:92%;font-size:13px;line-height:18px}
+.bk-phone .row{width:100%}
+.bk-note{margin-top:8px;color:var(--muted);font-size:13px}
+@media (max-width:900px){
+  .bk-hero,.bk-grid{grid-template-columns:minmax(0,1fr)}
+  .bk-phone{position:relative;top:0;order:-1}
+}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app" data-view="chat">
+
+  <nav class="rail" aria-label="WhatsApp sections">
+    <button class="rb on" aria-label="Chats"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 20z"/></svg></button>
+    <button class="rb" aria-label="Status"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0-2c5.5 0 10 4.5 10 10s-4.5 10-10 10S2 17.5 2 12 6.5 2 12 2z" opacity=".9"/></svg></button>
+    <button class="rb" aria-label="Channels"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M3 10v4h3l5 4V6L6 10H3zm13.5 2A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4z"/></svg></button>
+    <span class="sp"></span>
+    <a class="rb" href="#backend" aria-label="How it works at the backend" title="How it works at the backend"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg></a>
+    <button class="rb" aria-label="Settings"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.4-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 3a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.4 2.5-1c.5.4 1.1.7 1.7 1l.4 3h4l.4-3c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.4L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></button>
+    <span class="mini" aria-hidden="true">Y</span>
+  </nav>
+
+  <section class="list" aria-label="Chats">
+    <div class="lh"><h1>WhatsApp</h1></div>
+    <label class="search"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg><input id="q" type="search" placeholder="Search or start a new chat" aria-label="Search chats"></label>
+    <div class="filters" id="filters">
+      <button class="fchip on" data-f="all">All</button><button class="fchip" data-f="unread">Unread</button><button class="fchip" data-f="groups">Groups</button>
+    </div>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <section class="pane" id="pane" aria-label="Conversation">
+    <header class="top">
+      <button class="ib back" id="backBtn" aria-label="Back"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+      <button class="who" id="who" aria-label="Contact info">
+        <span class="av s40" id="hAv"></span>
+        <span class="t"><b><span id="hName"></span><svg class="vb" id="hBadge" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" style="fill:#25d366"/><path d="M7 12.5l3.2 3.2L17 8.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></b><small id="hSub"></small></span>
+      </button>
+      <button class="ib" id="moreBtn" aria-label="Menu" aria-haspopup="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
+      <div class="menu" id="menu" hidden><button id="mInfo">Business info</button><button id="mBack">How it works at the backend</button><button id="mClear">Clear chat</button></div>
+      <div class="selbar" id="selbar"><button class="ib" id="selX" aria-label="Cancel selection"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button><b id="selN">1 selected</b><button class="ib" id="selStar" aria-label="Star"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 17.3l-5.5 3.2 1.5-6.2L3 10l6.3-.5L12 3.5l2.7 6L21 10l-5 4.3 1.5 6.2z"/></svg></button><button class="ib" id="selFwd" aria-label="Forward"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg></button></div>
+    </header>
+
+    <div class="scroll" id="scroll" role="log" aria-live="polite" aria-label="Messages">
+      <div class="wall"></div>
+      <div class="feed" id="feed"></div>
+      <div class="feed" id="other" hidden></div>
+    </div>
+
+    <form class="composer" id="composer" autocomplete="off">
+      <div class="attach" id="attach" hidden></div>
+      <div class="pill">
+        <button type="button" class="ib emo" aria-label="Emoji"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm3.5-9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-7 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM12 17.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg></button>
+        <input id="msg" type="text" placeholder="Type a message" aria-label="Type a message" enterkeyhint="send">
+        <button type="button" class="ib" id="attachBtn" aria-label="Attach" aria-expanded="false"><svg class="ic-clip" width="24" height="24" viewBox="0 0 24 24" style="transform:rotate(45deg)"><path d="M16.5 6v11.5a4 4 0 0 1-8 0V5a2.5 2.5 0 0 1 5 0v10.5a1 1 0 0 1-2 0V6H10v9.5a2.5 2.5 0 0 0 5 0V5a4 4 0 0 0-8 0v12.5a5.5 5.5 0 0 0 11 0V6h-1.5z"/></svg><svg class="ic-plus" width="24" height="24" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+        <button type="button" class="ib" id="camBtn" aria-label="Camera"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zM9 2 7.17 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.17L15 2H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg></button>
+      </div>
+      <div class="rec" id="rec"><i></i><span id="recT">0:00</span><span style="color:var(--muted)">Recording…</span></div>
+      <button class="send" id="sendBtn" type="submit" aria-label="Voice message"><svg width="24" height="24" viewBox="0 0 24 24"></svg></button>
+    </form>
+    <div class="hint" id="hint" hidden>
+      <svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>
+      <span>To check a message, use the arrow beside it to forward it to ForwardCheck.</span>
+    </div>
+
+    <div class="scrim" id="scrim" hidden><div class="sheet" role="dialog" aria-label="Sample forwards">
+      <h3>Sample forwards</h3><div id="opts"></div></div></div>
+  </section>
+
+  <aside class="info" id="info" aria-label="Business info">
+    <div class="ihead"><button class="ib" id="infoClose" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button><b>Business info</b></div>
+    <div class="iscroll">
+      <div class="blk center">
+        <span class="av"><svg width="76" height="76" viewBox="0 0 24 24" style="fill:none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <h2>ForwardCheck <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" style="fill:#25d366"/><path d="M7 12.5l3.2 3.2L17 8.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
+        <p>Business account · Fact-checking</p>
+      </div>
+      <div class="blk"><h4>About</h4><p class="d">Send a forwarded message, screenshot, voice note, PDF or link. I check each claim against trusted sources and reply in English, Hindi or Marathi.</p></div>
+      <div class="blk"><h4>How your forward is checked</h4><ol class="steps" id="steps"></ol></div>
+      <div class="blk"><h4>Verdicts you can get</h4>
+        <ul class="legend">
+          <li><span>✅</span><span><span class="n">Verified</span><span class="m">Reliable sources support the whole claim</span></span></li>
+          <li><span>❌</span><span><span class="n">False</span><span class="m">Reliable sources contradict it</span></span></li>
+          <li><span>⏳</span><span><span class="n">Outdated</span><span class="m">True earlier, but a newer source changes it</span></span></li>
+          <li><span>⚠️</span><span><span class="n">Partly supported</span><span class="m">Some parts hold, others do not</span></span></li>
+          <li><span>❓</span><span><span class="n">Cannot be confirmed</span><span class="m">No reliable source found, so no guess</span></span></li>
+        </ul></div>
+      <div class="blk"><a href="#backend" class="biglink">See how this works at the backend <svg width="18" height="18" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6-1.4-1.4L12.2 12 7.6 7.4z"/></svg></a></div>
+      <div class="blk"><p class="d" style="color:var(--muted);font-size:13px">Prototype. Replies and evidence in this demo are simulated samples.</p></div>
+      <div class="blk"><button class="danger" id="iClear">Clear chat</button></div>
+    </div>
+  </aside>
+</div>
+
+<div class="ctx" id="ctx" hidden></div>
+<div class="toast" id="toast" hidden></div>
+
+<div class="dlg" id="dlg" hidden>
+  <div class="dcard" role="dialog" aria-label="Forward message to">
+    <div class="dh"><button class="ib" id="dlgX" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button><span>Forward message to</span></div>
+    <label class="dsearch"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg><input id="dq" type="search" placeholder="Search" aria-label="Search chats"></label>
+    <div class="dsec">Recent chats</div>
+    <div class="dlist" id="dlist"></div>
+    <div class="dfoot" id="dfoot" hidden><span id="dnames"></span><button class="send" id="dsend" aria-label="Send"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M3.4 20.4 21 12 3.4 3.6 3.39 10l12.6 2-12.6 2z"/></svg></button></div>
+  </div>
+</div>
+
+<main id="backend" aria-label="How ForwardCheck works at the backend">
+  <div class="bk-top"><a href="#chat"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>Back to chat</a><b>Behind the chat</b></div>
+  <div class="bk-wrap">
+    <section class="bk-hero">
+      <div>
+        <h1>What happens after you forward a message to ForwardCheck</h1>
+        <p>A forward sets off a short chain of calls between WhatsApp, Twilio, our FastAPI server, an LLM and a few trusted-source searches. Press the button to replay that chain step by step for the message on the right.</p>
+        <button class="bk-go" id="bkGo" type="button"><svg viewBox="0 0 24 24" style="fill:currentColor"><path d="M8 5v14l11-7z"/></svg><span id="bkGoT">See how it works at the backend</span></button>
+        <div class="bk-note">Sample data. Step timings are illustrative.</div>
+      </div>
+      <div class="bk-mini"><div class="wall"></div><span class="cap">The message being traced</span><div id="bkMsg" style="position:relative;width:100%"></div></div>
+    </section>
+    <div class="bk-strip" id="bkStrip" hidden></div>
+    <section class="bk-grid" id="bkGrid" hidden>
+      <ol class="tl" id="tl"></ol>
+      <aside class="bk-phone"><div class="ph">ForwardCheck <span style="opacity:.7;font-weight:400">on the user's phone</span></div><div class="pf" id="bkPhone"></div></aside>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+const app = $("#app"), scroller = $("#scroll"), input = $("#msg");
+const wide = () => matchMedia("(min-width:1000px)").matches;
+
+/* ================= i18n (mirrors forwardcheck/app/i18n.py) ================= */
+const LANGN = {en: "English", hi: "हिंदी", mr: "मराठी"};
+const LANGEN = {en: "English", hi: "Hindi", mr: "Marathi"};
+const LABELS = {
+  VERIFIED: {en: "Verified", hi: "सत्यापित", mr: "पडताळले (खरे)"},
+  FALSE: {en: "False", hi: "गलत", mr: "खोटे"},
+  OUTDATED: {en: "Outdated", hi: "पुराना", mr: "कालबाह्य"},
+  PARTLY_SUPPORTED: {en: "Partly supported", hi: "आंशिक रूप से सही", mr: "अंशतः बरोबर"},
+  CANNOT_BE_CONFIRMED: {en: "Cannot be confirmed", hi: "पुष्टि नहीं हो सकी", mr: "पुष्टी करता आली नाही"},
+};
+const EMOJI = {VERIFIED: "✅", FALSE: "❌", OUTDATED: "⏳", PARTLY_SUPPORTED: "⚠️", CANNOT_BE_CONFIRMED: "❓"};
+const STR = {
+  claim: {en: "Claim", hi: "दावा", mr: "दावा"},
+  verdict: {en: "Verdict", hi: "निष्कर्ष", mr: "निकाल"},
+  wrong: {en: "What's wrong / right", hi: "क्या गलत / सही है", mr: "काय चुकीचे / बरोबर आहे"},
+  evidence: {en: "Evidence", hi: "सबूत", mr: "पुरावा"},
+  summary: {en: "In simple words", hi: "आसान शब्दों में", mr: "सोप्या शब्दांत"},
+  checking: {
+    en: "Checking your forward. This can take up to a minute…",
+    hi: "आपका फ़ॉरवर्ड जाँचा जा रहा है। इसमें एक मिनट तक लग सकता है…",
+    mr: "तुमचा फॉरवर्ड तपासत आहे. यासाठी एक मिनिट लागू शकतो…"},
+  no_claims: {
+    en: "I couldn't find a factual claim to check in this message.",
+    hi: "इस संदेश में जाँचने लायक कोई तथ्यात्मक दावा नहीं मिला।",
+    mr: "या संदेशात तपासण्यासारखा कोणताही तथ्यात्मक दावा सापडला नाही."},
+  no_evidence: {
+    en: "No reliable source we checked confirms or contradicts this claim, so we can't say whether it is true.",
+    hi: "हमारे देखे गए किसी भरोसेमंद स्रोत ने इस दावे की पुष्टि या खंडन नहीं किया, इसलिए हम नहीं कह सकते कि यह सच है या नहीं।",
+    mr: "आम्ही तपासलेल्या कोणत्याही विश्वासार्ह स्रोताने या दाव्याची पुष्टी किंवा खंडन केलेले नाही, म्हणून हे खरे आहे की नाही हे सांगता येत नाही."},
+  footer: {
+    en: "Reply HINDI, MARATHI or ENGLISH to change language.",
+    hi: "भाषा बदलने के लिए HINDI, MARATHI या ENGLISH लिखें।",
+    mr: "भाषा बदलण्यासाठी HINDI, MARATHI किंवा ENGLISH लिहा."},
+  help: {
+    en: "Hi! I check forwarded messages. Send me a message, screenshot, voice note, PDF or link, and I'll tell you if each claim is Verified, False, Outdated, Partly supported or Cannot be confirmed, with the evidence.\n\nReply HINDI, MARATHI or ENGLISH to choose the reply language.",
+    hi: "नमस्ते! मैं फ़ॉरवर्ड किए गए संदेश जाँचता हूँ। मुझे संदेश, स्क्रीनशॉट, वॉइस नोट, PDF या लिंक भेजें। मैं बताऊँगा कि हर दावा सत्यापित, गलत, पुराना, आंशिक रूप से सही या अपुष्ट है, सबूत के साथ।\n\nभाषा चुनने के लिए HINDI, MARATHI या ENGLISH लिखें।",
+    mr: "नमस्कार! मी फॉरवर्ड केलेले संदेश तपासतो. मला संदेश, स्क्रीनशॉट, व्हॉइस नोट, PDF किंवा लिंक पाठवा. प्रत्येक दावा खरा, खोटा, कालबाह्य, अंशतः बरोबर की अपुष्ट आहे ते मी पुराव्यासह सांगेन.\n\nभाषा निवडण्यासाठी HINDI, MARATHI किंवा ENGLISH लिहा."},
+  lang_set: {en: "Okay, I'll reply in English.", hi: "ठीक है, मैं हिंदी में जवाब दूँगा।", mr: "ठीक आहे, मी मराठीत उत्तर देईन."},
+  heard: {en: "Voice note heard", hi: "वॉइस नोट सुना", mr: "व्हॉइस नोट ऐकले"},
+  ocr: {en: "Text read from image", hi: "इमेज से पढ़ा गया टेक्स्ट", mr: "प्रतिमेतून वाचलेला मजकूर"},
+  article: {en: "Article read", hi: "लेख पढ़ा गया", mr: "लेख वाचला"},
+  published: {en: "Published", hi: "प्रकाशित", mr: "प्रकाशित"},
+  pdfnote: {
+    en: "📄 {file}: {pages} pages read. Found {found} claims; I checked the {n} most important.",
+    hi: "📄 {file}: {pages} पेज पढ़े। {found} दावे मिले; मैंने सबसे ज़रूरी {n} जाँचे।",
+    mr: "📄 {file}: {pages} पाने वाचली. {found} दावे सापडले; मी सर्वात महत्त्वाचे {n} तपासले."},
+  sum_unknown: {
+    en: "Please don't forward this until an official announcement appears.",
+    hi: "आधिकारिक घोषणा आने तक इसे आगे न भेजें।",
+    mr: "अधिकृत घोषणा होईपर्यंत हे पुढे पाठवू नका."},
+  sample: {en: "Pick a sample forward and I'll check it.", hi: "एक नमूना फ़ॉरवर्ड चुनें, मैं उसे जाँचूँगा।", mr: "एक नमुना फॉरवर्ड निवडा, मी तो तपासतो."},
+};
+const t = (k, l, p = {}) => {
+  let s = STR[k][l] || STR[k].en;
+  for (const [a, b] of Object.entries(p)) s = s.replace("{" + a + "}", b);
+  return s;
+};
+
+/* ================= sample scenarios (simulated data) ================= */
+const SC = {
+  health: {
+    type: "text", forwarded: true, lang: "en", title: "Health cure forward", desc: "Text · English",
+    text: "🙏 IMPORTANT 🙏 Drinking hot water with lemon and turmeric every morning cures diabetes completely. Doctors hide this because they lose business! Forward to 10 people to save a life.",
+    ingest: "Text message · English",
+    claims: [{
+      claim: {en: "Drinking hot water with lemon and turmeric every morning completely cures diabetes.",
+        hi: "हर सुबह नींबू और हल्दी वाला गर्म पानी पीने से डायबिटीज़ पूरी तरह ठीक हो जाती है।",
+        mr: "दररोज सकाळी लिंबू आणि हळद घातलेले गरम पाणी प्यायल्याने मधुमेह पूर्णपणे बरा होतो."},
+      label: "FALSE",
+      wrong: {en: "No drink or home remedy cures diabetes. Type 2 diabetes is managed with diet, exercise and medicines prescribed by a doctor.",
+        hi: "कोई भी पेय या घरेलू नुस्खा डायबिटीज़ को ठीक नहीं करता। टाइप 2 डायबिटीज़ को खानपान, कसरत और डॉक्टर की बताई दवाओं से नियंत्रित किया जाता है।",
+        mr: "कोणतेही पेय किंवा घरगुती उपाय मधुमेह बरा करत नाही. टाइप 2 मधुमेह आहार, व्यायाम आणि डॉक्टरांनी सांगितलेल्या औषधांनी नियंत्रणात ठेवला जातो."},
+      ev: [
+        {src: "World Health Organization", domain: "who.int", date: "2023-04-05", q: "Diabetes is a chronic condition. Treatment combines healthy diet, physical activity and medicines such as insulin where needed."},
+        {src: "ICMR", domain: "icmr.gov.in", date: "2024-05-09", q: "No single food or drink can reverse diabetes; dietary guidance must be paired with medical care."}],
+      summary: {en: "No lemon-turmeric water can cure diabetes. Please do not stop your medicines; talk to your doctor.",
+        hi: "नींबू-हल्दी का पानी डायबिटीज़ ठीक नहीं कर सकता। अपनी दवाएँ बंद न करें, डॉक्टर से बात करें।",
+        mr: "लिंबू-हळदीचे पाणी मधुमेह बरा करू शकत नाही. औषधे बंद करू नका, डॉक्टरांशी बोला."},
+    }],
+  },
+  scheme: {
+    type: "text", forwarded: true, lang: "en", title: "Free laptop scheme", desc: "Text · English",
+    text: "🎓 Good news for students! Under PM Digital Shiksha Yojana the Govt is giving FREE laptops to ALL students. Apply before 31 Oct here: free-laptop-apply.example/form\nForward to 10 groups!",
+    ingest: "Text message · English",
+    claims: [{
+      claim: {en: "The government is giving free laptops to all students under the 'PM Digital Shiksha Yojana' and applications close on 31 October.",
+        hi: "सरकार 'पीएम डिजिटल शिक्षा योजना' के तहत सभी छात्रों को मुफ़्त लैपटॉप दे रही है और आवेदन 31 अक्टूबर तक है।",
+        mr: "सरकार 'पीएम डिजिटल शिक्षा योजने'अंतर्गत सर्व विद्यार्थ्यांना मोफत लॅपटॉप देत आहे आणि अर्ज ३१ ऑक्टोबरपर्यंत आहेत."},
+      label: "FALSE",
+      wrong: {en: "PIB Fact Check has marked this scheme as fake. No such scheme exists, and the link asks for personal details.",
+        hi: "PIB फ़ैक्ट चेक ने इस योजना को फ़र्ज़ी बताया है। ऐसी कोई योजना नहीं है, और लिंक आपकी निजी जानकारी माँगता है।",
+        mr: "PIB फॅक्ट चेकने ही योजना बनावट असल्याचे सांगितले आहे. अशी कोणतीही योजना नाही आणि लिंक तुमची वैयक्तिक माहिती मागते."},
+      ev: [
+        {src: "PIB Fact Check", domain: "pib.gov.in", date: "2024-08-14", q: "Claim that the Government is giving free laptops to all students is #Fake. No such scheme has been announced."},
+        {src: "Ministry of Education", domain: "education.gov.in", date: "2024-08-16", q: "No scheme for free laptop distribution to all students is currently notified."}],
+      summary: {en: "This is a fake scheme. Do not click the link or share your details.",
+        hi: "यह फ़र्ज़ी योजना है। लिंक पर क्लिक न करें और अपनी जानकारी साझा न करें।",
+        mr: "ही बनावट योजना आहे. लिंकवर क्लिक करू नका आणि तुमची माहिती देऊ नका."},
+    }],
+  },
+  pan: {
+    type: "image", forwarded: true, lang: "hi", title: "Aadhaar–PAN screenshot", desc: "Image · Hindi",
+    shot: {tag: "Daily Samachar", head: "ब्रेकिंग: आधार–पैन लिंक की आखिरी तारीख 31 मार्च 2022",
+      body: "इसके बाद आपका पैन कार्ड बंद कर दिया जाएगा। अभी जोड़ें!"},
+    ocr: "ब्रेकिंग: आधार–पैन लिंक की आखिरी तारीख 31 मार्च 2022। इसके बाद आपका पैन कार्ड बंद कर दिया जाएगा। अभी जोड़ें!",
+    ingest: "OCR (Tesseract hin+eng) · 1 text block read",
+    claims: [{
+      claim: {en: "The last date to link Aadhaar with PAN is 31 March 2022, after which PAN will stop working.",
+        hi: "आधार को पैन से जोड़ने की आखिरी तारीख 31 मार्च 2022 है, उसके बाद पैन काम करना बंद कर देगा।",
+        mr: "आधार पॅनशी जोडण्याची शेवटची तारीख ३१ मार्च २०२२ आहे, त्यानंतर पॅन काम करणे थांबेल."},
+      label: "OUTDATED",
+      wrong: {en: "That date has passed and was extended. The last extension, notified in March 2023, moved the deadline to 30 June 2023, with a ₹1,000 fee for late linking.",
+        hi: "यह तारीख बीत चुकी है और इसे बढ़ाया गया था। मार्च 2023 की अधिसूचना के अनुसार आखिरी तारीख 30 जून 2023 थी, और देरी से जोड़ने पर ₹1,000 शुल्क लगता है।",
+        mr: "ही तारीख उलटून गेली आहे आणि मुदत वाढवण्यात आली होती. मार्च २०२३ च्या अधिसूचनेनुसार शेवटची तारीख ३० जून २०२३ होती आणि उशिरा जोडल्यास ₹१,००० शुल्क लागते."},
+      ev: [
+        {src: "Income Tax Department", domain: "incometax.gov.in", date: "2023-03-28", q: "The last date for intimating Aadhaar to be linked with PAN is extended to 30 June 2023. A fee of ₹1,000 applies."},
+        {src: "PIB", domain: "pib.gov.in", date: "2022-03-30", q: "The deadline for linking PAN with Aadhaar is extended to 31 March 2023."}],
+      summary: {en: "This message is old. The date has changed, so check the Income Tax website before paying anyone.",
+        hi: "यह संदेश पुराना है। तारीख बदल चुकी है, किसी को पैसे देने से पहले इनकम टैक्स की वेबसाइट देखें।",
+        mr: "हा संदेश जुना आहे. तारीख बदलली आहे, कोणालाही पैसे देण्यापूर्वी आयकर विभागाची वेबसाइट पाहा."},
+    }],
+  },
+  upi: {
+    type: "voice", forwarded: true, lang: "mr", title: "UPI charges voice note", desc: "Voice · Marathi", dur: "0:18",
+    transcript: "ऐका, पुढच्या महिन्यापासून UPI ने पेमेंट केल्यावर सगळ्यांना चार्ज लागणार आहे. फोन पे, गुगल पे सगळ्यांवर. लगेच सगळ्यांना सांगा.",
+    ingest: "Whisper STT · Marathi detected · 0:18",
+    claims: [{
+      claim: {en: "From next month, every UPI payment will be charged for all users.",
+        hi: "अगले महीने से UPI से हर पेमेंट पर सभी यूज़र्स से चार्ज लगेगा।",
+        mr: "पुढील महिन्यापासून सर्व वापरकर्त्यांना प्रत्येक UPI पेमेंटवर शुल्क लागेल."},
+      label: "PARTLY_SUPPORTED",
+      wrong: {en: "Partly true: a 1.1% interchange fee applies to some wallet (PPI) merchant payments above ₹2,000. It is paid by merchants, and normal bank-to-bank UPI payments remain free.",
+        hi: "आंशिक रूप से सही: ₹2,000 से ऊपर के कुछ PPI (वॉलेट) मर्चेंट पेमेंट पर 1.1% इंटरचेंज फ़ीस लगी है। लेकिन यह दुकानदार देते हैं, और बैंक खाते से सामान्य UPI पेमेंट मुफ़्त है।",
+        mr: "अंशतः बरोबर: ₹२,००० वरील काही वॉलेट (PPI) व्यापारी पेमेंटवर १.१% इंटरचेंज शुल्क लागते. ते व्यापारी भरतात आणि बँक खात्यातून होणारे सामान्य UPI पेमेंट मोफत आहे."},
+      ev: [
+        {src: "NPCI", domain: "npci.org.in", date: "2023-03-24", q: "Interchange of 1.1% applies to PPI merchant transactions above ₹2,000. No charges for bank account to bank account UPI payments."},
+        {src: "PIB", domain: "pib.gov.in", date: "2023-03-29", q: "Customers will not be charged for UPI payments made from a bank account."}],
+      summary: {en: "You will not be charged for normal UPI payments from your bank account.",
+        hi: "बैंक खाते से होने वाले सामान्य UPI पेमेंट पर आपसे कोई चार्ज नहीं लगता।",
+        mr: "बँक खात्यातून होणाऱ्या सामान्य UPI पेमेंटसाठी तुमच्याकडून शुल्क घेतले जात नाही."},
+    }],
+  },
+  pdf: {
+    type: "pdf", forwarded: true, lang: "en", title: "Health tips PDF", desc: "12 pages · 3 claims checked",
+    file: "Health_Tips_Forward.pdf", pages: 12, size: "340 kB", found: 7,
+    ingest: "PyMuPDF · 12 pages · 7 claims found, top 3 kept",
+    claims: [
+      {claim: {en: "Drinking cold water after meals causes heart attacks.",
+        hi: "खाने के बाद ठंडा पानी पीने से हार्ट अटैक होता है।",
+        mr: "जेवणानंतर थंड पाणी प्यायल्याने हृदयविकाराचा झटका येतो."},
+      label: "FALSE",
+      wrong: {en: "There is no medical evidence that cold water causes heart attacks. Heart disease is linked to blood pressure, smoking, diet, diabetes and inactivity.",
+        hi: "ठंडा पानी पीने से हार्ट अटैक होने का कोई चिकित्सीय प्रमाण नहीं है। हृदय रोग का संबंध ब्लड प्रेशर, धूम्रपान, खानपान, डायबिटीज़ और कसरत की कमी से है।",
+        mr: "थंड पाणी प्यायल्याने हृदयविकाराचा झटका येतो याचा कोणताही वैद्यकीय पुरावा नाही. हृदयरोगाचा संबंध रक्तदाब, धूम्रपान, आहार, मधुमेह आणि व्यायामाच्या अभावाशी आहे."},
+      ev: [{src: "World Health Organization", domain: "who.int", date: "2021-06-11", q: "The most important behavioural risk factors of heart disease are unhealthy diet, physical inactivity, tobacco use and harmful use of alcohol."}],
+      summary: {en: "Cold water does not cause heart attacks.", hi: "ठंडा पानी हार्ट अटैक नहीं करता।", mr: "थंड पाणी हृदयविकाराचा झटका आणत नाही."}},
+      {claim: {en: "Washing hands with soap reduces the risk of diarrhoea.",
+        hi: "साबुन से हाथ धोने से दस्त (डायरिया) का खतरा कम होता है।",
+        mr: "साबणाने हात धुतल्याने जुलाबाचा धोका कमी होतो."},
+      label: "VERIFIED",
+      wrong: {en: "Confirmed. Handwashing with soap is a proven way to reduce diarrhoeal disease.",
+        hi: "पुष्ट। साबुन से हाथ धोना डायरिया कम करने का प्रमाणित तरीका है।",
+        mr: "पुष्टी झाली. साबणाने हात धुणे हा जुलाब कमी करण्याचा सिद्ध मार्ग आहे."},
+      ev: [{src: "World Health Organization", domain: "who.int", date: "2022-10-13", q: "Handwashing with soap is one of the most effective ways to prevent diarrhoeal diseases."},
+           {src: "Ministry of Health & Family Welfare", domain: "mohfw.gov.in", date: "2023-10-15", q: "Hand hygiene with soap and water prevents common infections including diarrhoea."}],
+      summary: {en: "This one is correct. Keep washing hands.", hi: "यह बात सही है। हाथ धोते रहें।", mr: "ही गोष्ट बरोबर आहे. हात धुवत राहा."}},
+      {claim: {en: "Food heated in a microwave oven becomes radioactive.",
+        hi: "माइक्रोवेव ओवन में गर्म किया खाना रेडियोधर्मी हो जाता है।",
+        mr: "मायक्रोवेव ओव्हनमध्ये गरम केलेले अन्न किरणोत्सारी होते."},
+      label: "FALSE",
+      wrong: {en: "Microwaves heat food with non-ionising radiation. This does not make food radioactive.",
+        hi: "माइक्रोवेव खाने को नॉन-आयनाइज़िंग विकिरण से गर्म करता है। इससे खाना रेडियोधर्मी नहीं होता।",
+        mr: "मायक्रोवेव अन्न नॉन-आयनायझिंग किरणांनी गरम करते. त्यामुळे अन्न किरणोत्सारी होत नाही."},
+      ev: [{src: "US FDA", domain: "fda.gov", date: "2022-02-08", q: "Microwave ovens heat food without making it radioactive. The radiation used is non-ionizing."}],
+      summary: {en: "Microwaved food is safe from radioactivity.", hi: "माइक्रोवेव का खाना रेडियोधर्मी नहीं होता।", mr: "मायक्रोवेवमधील अन्न किरणोत्सारी नसते."}},
+    ],
+  },
+  moon: {
+    type: "link", forwarded: false, lang: "en", title: "News article link", desc: "Link · English",
+    url: "https://dailybulletin.example/news/chandrayaan-3-lands-near-moon-south-pole",
+    pv: {title: "Chandrayaan-3 lands near Moon's south pole", site: "Daily Bulletin", host: "dailybulletin.example"},
+    date: "23 Aug 2023", ingest: "Article fetched · published 23 Aug 2023",
+    claims: [{
+      claim: {en: "Chandrayaan-3 landed near the Moon's south pole on 23 August 2023.",
+        hi: "चंद्रयान-3 ने 23 अगस्त 2023 को चंद्रमा के दक्षिणी ध्रुव के पास लैंड किया।",
+        mr: "चांद्रयान-३ ने २३ ऑगस्ट २०२३ रोजी चंद्राच्या दक्षिण ध्रुवाजवळ लँडिंग केले."},
+      label: "VERIFIED",
+      wrong: {en: "Confirmed. ISRO's Vikram lander touched down on 23 August 2023, near the Moon's south polar region.",
+        hi: "पुष्ट। ISRO का विक्रम लैंडर 23 अगस्त 2023 को चंद्रमा के दक्षिणी ध्रुवीय क्षेत्र के पास उतरा।",
+        mr: "पुष्टी झाली. ISRO चे विक्रम लँडर २३ ऑगस्ट २०२३ रोजी चंद्राच्या दक्षिण ध्रुवीय भागाजवळ उतरले."},
+      ev: [
+        {src: "ISRO", domain: "isro.gov.in", date: "2023-08-23", q: "Chandrayaan-3 Mission: soft-landing on the Moon achieved on 23 August 2023."},
+        {src: "PIB", domain: "pib.gov.in", date: "2023-08-23", q: "Prime Minister congratulates ISRO scientists on the soft landing of Chandrayaan-3."}],
+      summary: {en: "This news is correct.", hi: "यह खबर सही है।", mr: "ही बातमी बरोबर आहे."},
+    }],
+  },
+  unknown: {
+    type: "text", forwarded: true, lang: "en", title: "Free 5G recharge rumour", desc: "Text · English",
+    text: "Breaking!! A telecom company will give FREE 5G recharge for 1 full year to everyone this Monday. Forward fast before offer ends!!",
+    ingest: "Text message · English",
+    claims: [{
+      claim: {en: "A telecom company will give everyone a free one-year 5G recharge next Monday.",
+        hi: "एक टेलीकॉम कंपनी अगले सोमवार को सभी को एक साल का मुफ़्त 5G रिचार्ज देगी।",
+        mr: "एक टेलिकॉम कंपनी पुढील सोमवारी सर्वांना एका वर्षाचे मोफत 5G रिचार्ज देणार आहे."},
+      label: "CANNOT_BE_CONFIRMED", wrong: STR.no_evidence, ev: [],
+      summary: STR.sum_unknown,
+    }],
+  },
+};
+const SAMPLE_ORDER = ["health", "scheme", "pan", "upi", "pdf", "moon", "unknown"];
+
+/* ================= the other chats on the phone ================= */
+const COLORS = ["#d4472b", "#1c8d73", "#7c4dff", "#c2185b", "#0277bd", "#8d6e00", "#00897b", "#ad1457"];
+const CHATS = [
+  {id: "bot", name: "ForwardCheck", av: {bg: "#00a884", svg: true}, verified: true, time: "now", preview: "Hi! I check forwarded messages…", day: "Today"},
+  {id: "fam", name: "Sharma Parivar", group: true, av: {bg: "#7c4dff", t: "SP"}, members: "Papa, Aai, Chachi, You", time: "10:44 am", unread: 3, day: "Today", msgs: [
+    {f: "Chachi", text: "Good morning everyone 🌞🙏", t: "8:12 am"},
+    {f: "Papa", sc: "health", t: "10:41 am"},
+    {f: "Chachi", sc: "scheme", t: "10:44 am"}]},
+  {id: "aai", name: "Aai", av: {bg: "#c2185b", t: "आ"}, time: "9:58 am", unread: 1, day: "Today", msgs: [
+    {text: "जेवलास का रे? हे ऐक जरा 👇", t: "9:57 am"},
+    {sc: "upi", t: "9:58 am"}]},
+  {id: "clg", name: "College Gang 🎓", group: true, av: {bg: "#0277bd", t: "CG"}, members: "Sneha, Rahul, Arjun, Meera, You", time: "Yesterday", unread: 0, day: "Yesterday", msgs: [
+    {f: "Arjun", text: "bhai assignment submit hua kya?", t: "6:20 pm"},
+    {f: "Sneha", sc: "pan", t: "7:02 pm"},
+    {f: "Sneha", text: "link kar lo jaldi, warna problem hogi", t: "7:03 pm"}]},
+  {id: "soc", name: "Green Valley Residents", group: true, av: {bg: "#1c8d73", t: "GV"}, members: "Secretary, Mr. Kulkarni, Mrs. Iyer, +41", time: "Yesterday", unread: 0, day: "Yesterday", msgs: [
+    {f: "Secretary", text: "Water supply will be off 2 to 4 pm tomorrow for tank cleaning.", t: "4:10 pm"},
+    {f: "Mrs. Iyer", sc: "pdf", t: "5:36 pm"}]},
+  {id: "roh", name: "Rohan Bhai", av: {bg: "#8d6e00", t: "RB"}, time: "Tuesday", unread: 0, day: "Tuesday", msgs: [
+    {sc: "moon", t: "11:15 am"}]},
+  {id: "neh", name: "Neha (Office)", av: {bg: "#ad1457", t: "NO"}, time: "Monday", unread: 0, day: "Monday", msgs: [
+    {text: "Have you seen this??", t: "1:02 pm"},
+    {sc: "unknown", t: "1:02 pm"}]},
+];
+const CAT = {health: "health", scheme: "government_scheme", pan: "finance", upi: "finance", pdf: "health", moon: "science", unknown: "other"};
+Object.keys(CAT).forEach(k => { SC[k].cat = CAT[k]; });
+const chatById = id => CHATS.find(c => c.id === id);
+
+/* ================= helpers ================= */
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function fmt(s, link) {
+  return esc(s)
+    .replace(/https?:\/\/[^\s<]+/g, u => link ? `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>` : `<span class="lnk">${u}</span>`)
+    .replace(/\*([^*\n]+)\*/g, "<b>$1</b>")
+    .replace(/\n/g, "<br>");
+}
+const time = () => new Date().toLocaleTimeString("en-IN", {hour: "numeric", minute: "2-digit", hour12: true});
+const TICKS = '<span class="ticks" data-s="sent"><svg viewBox="0 0 18 11"><path d="M1 6l3 3 6.5-8"/><path class="t2" d="M7 8.6l1 .9 6.5-8"/></svg></span>';
+const fwdHtml = l => '<div class="fwd"><svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>' + l + '</div>';
+const MANY = "Forwarded many times";
+const detectLang = s => /[ऀ-ॿ]/.test(s) ? (/(आहे|नाही|आणि|तुम्ही|करा|होते|मला|पुढच्या)/.test(s) ? "mr" : "hi") : "en";
+const plain = s => s.replace(/\*/g, "").replace(/\n+/g, " ").trim();
+
+/* ================= state + queue ================= */
+let prefLang = null, epoch = 0, interacted = false, chain = Promise.resolve(), typingRow = null;
+let active = "bot", botSub = "online", filter = "all", query = "";
+const botState = {last: null};
+const feed = $("#feed"), other = $("#other");
+const sleep = (ms, ep) => new Promise((res, rej) => setTimeout(() => ep !== epoch ? rej("abort") : res(), ms));
+function enqueue(fn) {
+  const ep = epoch;
+  chain = chain.then(() => ep === epoch ? fn(ep) : null).catch(e => { if (e !== "abort") console.error(e); });
+}
+const scrollDown = () => requestAnimationFrame(() => { scroller.scrollTop = scroller.scrollHeight; });
+
+/* ================= chat list ================= */
+function avatarHtml(c, cls) {
+  if (c.av.svg) return `<span class="av ${cls}" style="background:${c.av.bg}"><svg width="60%" height="60%" viewBox="0 0 24 24" style="fill:none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+  return `<span class="av ${cls}" style="background:${c.av.bg}">${esc(c.av.t)}</span>`;
+}
+function lastPreview(c) {
+  if (c.id === "bot") return c.preview;
+  const m = c.msgs[c.msgs.length - 1];
+  let s;
+  if (m.sc) {
+    const sc = SC[m.sc];
+    s = sc.type === "voice" ? "🎤 " + sc.dur : sc.type === "image" ? "📷 Photo" : sc.type === "pdf" ? "📄 " + sc.file
+      : sc.type === "link" ? "🔗 " + sc.pv.title : sc.text.replace(/\n/g, " ");
+  } else s = m.text;
+  return (m.out ? (c.group ? "You: " : "✓✓ ") : (c.group && m.f ? m.f + ": " : "")) + s;
+}
+function renderList() {
+  const rows = $("#rows");
+  rows.innerHTML = "";
+  CHATS.filter(c => {
+    if (filter === "unread" && !c.unread) return false;
+    if (filter === "groups" && !c.group) return false;
+    if (query && !c.name.toLowerCase().includes(query)) return false;
+    return true;
+  }).forEach(c => {
+    const b = document.createElement("button");
+    b.className = "crow" + (c.id === active ? " sel" : "") + (c.unread ? " unr" : "");
+    b.innerHTML = `${avatarHtml(c, "s49")}<span class="body"><span class="l1"><span class="nm">${esc(c.name)}${c.verified ?
+      '<svg class="vb" width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" style="fill:#25d366"/><path d="M7 12.5l3.2 3.2L17 8.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ""}</span>
+      <span class="tm">${c.time}</span></span><span class="l2"><span class="pv">${esc(plain(lastPreview(c)))}</span>${c.unread ? `<span class="bd">${c.unread}</span>` : ""}</span></span>`;
+    b.addEventListener("click", () => openChat(c.id));
+    rows.appendChild(b);
+  });
+}
+function setBotPreview(text, unreadBump) {
+  const c = chatById("bot");
+  c.preview = plain(text).slice(0, 90); c.time = time();
+  if (unreadBump && active !== "bot") c.unread = (c.unread || 0) + 1;
+  renderList();
+}
+
+/* ================= views ================= */
+function setView(v) { app.dataset.view = v; }
+function setSub(s) { botSub = s; if (active === "bot") $("#hSub").textContent = s; }
+function openChat(id) {
+  active = id;
+  sel.clear(); updateSel();
+  const c = chatById(id);
+  c.unread = 0;
+  $("#hAv").outerHTML = avatarHtml(c, "s40").replace("<span", '<span id="hAv"');
+  $("#hName").textContent = c.name;
+  $("#hBadge").hidden = !c.verified;
+  $("#hSub").textContent = id === "bot" ? botSub : (c.group ? c.members : "last seen today at " + c.time);
+  const isBot = id === "bot";
+  feed.hidden = !isBot; other.hidden = isBot;
+  $("#composer").hidden = !isBot; $("#hint").hidden = isBot;
+  closeAttach(); closeSheet();
+  if (!isBot) renderOther(c);
+  setView("chat"); renderList(); scrollDown();
+}
+const sel = new Set();
+function otherRows() { return [...other.querySelectorAll(".hrow")]; }
+function updateSel() {
+  app.classList.toggle("selmode", sel.size > 0);
+  otherRows().forEach(r => r.classList.toggle("sel", sel.has(+r.dataset.i)));
+  $("#selN").textContent = sel.size + " selected";
+}
+function renderOther(c) {
+  other.innerHTML = "";
+  const d = document.createElement("div"); d.className = "date"; d.textContent = c.day || "Today"; other.appendChild(d);
+  const n = document.createElement("div"); n.className = "sys";
+  n.textContent = "🔒 Messages are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read them.";
+  other.appendChild(n);
+  let lastKey = null;
+  c.msgs.forEach((m, i) => {
+    const sc = m.sc ? SC[m.sc] : null;
+    const key = m.out ? "me" : (m.f || "them");
+    const first = key !== lastKey; lastKey = key;
+    const col = m.f ? COLORS[[...m.f].reduce((a, ch) => a + ch.charCodeAt(0), 0) % COLORS.length] : "";
+    const row = document.createElement("div");
+    row.className = "hrow" + (m.out ? " out" : "") + (first && i ? " gap" : "");
+    row.dataset.i = i;
+    const label = m.fwd ? (sc && sc.forwarded ? MANY : "Forwarded") : (sc && sc.forwarded ? MANY : "");
+    const body = sc ? outBody(sc) : fmt(m.text, false);
+    const dir = m.out ? "out" : "in";
+    row.innerHTML = `<span class="chk"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+      <div class="msg ${dir}${first ? " tail" : ""}${sc && sc.type === "voice" ? " voice-b" : ""}">` +
+      (c.group && m.f && first && !m.out ? `<div class="sender" style="color:${col}">${esc(m.f)}</div>` : "") +
+      (label ? fwdHtml(label) : "") + body +
+      `<span class="meta">${m.star ? '<span class="star">★</span>' : ""}${m.t}${m.out ? '<span class="ticks" data-s="delivered"><svg viewBox="0 0 18 11"><path d="M1 6l3 3 6.5-8"/><path class="t2" d="M7 8.6l1 .9 6.5-8"/></svg></span>' : ""}</span>
+      <button class="chev" aria-label="Message options"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg></button></div>`;
+    if (sc && sc.forwarded && !m.out) {
+      const f = document.createElement("button");
+      f.className = "fbtn"; f.title = "Forward"; f.setAttribute("aria-label", "Forward");
+      f.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>';
+      f.addEventListener("click", ev => { ev.stopPropagation(); openForward([i]); });
+      row.appendChild(f);
+    }
+    row.addEventListener("click", ev => {
+      if (sel.size) { toggleSel(i); return; }
+      const ch = ev.target.closest(".chev");
+      if (ch) { ev.stopPropagation(); openCtx(ch.getBoundingClientRect(), i); }
+    });
+    row.addEventListener("contextmenu", ev => { ev.preventDefault(); openCtx({left: ev.clientX, bottom: ev.clientY}, i); });
+    let timer = null;
+    row.addEventListener("pointerdown", ev => {
+      if (ev.pointerType !== "touch") return;
+      timer = setTimeout(() => { timer = null; if (navigator.vibrate) navigator.vibrate(15); enterSel(i); }, 450);
+    });
+    ["pointerup", "pointermove", "pointercancel"].forEach(e => row.addEventListener(e, () => { if (timer) { clearTimeout(timer); timer = null; } }));
+    other.appendChild(row);
+    bindVoice({b: row});
+  });
+  updateSel();
+}
+function enterSel(i) { sel.add(i); updateSel(); }
+function toggleSel(i) { sel.has(i) ? sel.delete(i) : sel.add(i); updateSel(); }
+
+/* ================= bubbles in the bot chat ================= */
+function addBubble({dir, body, forwarded, cls = "", quote, preview = true}) {
+  const row = document.createElement("div");
+  const first = botState.last !== dir;
+  row.className = "row " + dir + (first && botState.last !== null ? " gap" : "");
+  const b = document.createElement("div");
+  b.className = `msg ${dir}${first ? " tail" : ""} ${cls}`;
+  b.innerHTML = (forwarded ? fwdHtml(forwarded) : "") +
+    (quote ? `<div class="quote"><b>${esc(quote.who)}</b><span>${esc(quote.text)}</span></div>` : "") + body +
+    `<span class="meta">${time()}${dir === "out" ? TICKS : ""}</span>`;
+  row.appendChild(b);
+  feed.appendChild(row);
+  botState.last = dir;
+  if (preview) setBotPreview(dir === "in" ? plain(body.replace(/<[^>]+>/g, " ")) : "You: " + plain(body.replace(/<[^>]+>/g, " ")), dir === "in");
+  if (active === "bot") scrollDown();
+  return {row, b};
+}
+const addIn = (text, extra = {}) => addBubble({dir: "in", body: fmt(text, true), ...extra});
+function tick(el, s) { const k = el.b.querySelector(".ticks"); if (k) k.dataset.s = s; }
+
+function showTyping() {
+  if (typingRow) return;
+  setSub("typing…");
+  const row = document.createElement("div");
+  row.className = "row in gap";
+  row.innerHTML = '<div class="msg in tail"><div class="typing"><i></i><i></i><i></i></div></div>';
+  feed.appendChild(row); typingRow = row; botState.last = "in";
+  if (active === "bot") scrollDown();
+}
+function hideTyping() {
+  if (typingRow) { typingRow.remove(); typingRow = null; }
+  setSub("online");
+}
+function addButtons(row, labels) {
+  const box = document.createElement("div");
+  box.className = "btns";
+  labels.forEach(([label, word]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = label;
+    b.addEventListener("click", () => { box.classList.add("used"); sendTyped(word, label); });
+    box.appendChild(b);
+  });
+  row.appendChild(box);
+  if (active === "bot") scrollDown();
+}
+
+function waveHtml(seed) {
+  let h = "", x = seed;
+  for (let i = 0; i < 30; i++) { x = (x * 9301 + 49297) % 233280; h += `<i style="height:${6 + Math.round((x / 233280) * 20)}px"></i>`; }
+  return h;
+}
+function outBody(sc) {
+  if (sc.type === "image") {
+    return `<div class="shot"><div class="bar"><span>BREAKING</span><span>${esc(sc.shot.tag)}</span></div>
+      <div class="bd"><h4>${esc(sc.shot.head)}</h4><p>${esc(sc.shot.body)}</p></div></div>`;
+  }
+  if (sc.type === "voice") {
+    return `<div class="voice"><button type="button" class="vplay" aria-label="Play voice note"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+      <div class="wave">${waveHtml(7)}</div><div class="mic"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></div></div><span class="vdur">${sc.dur}</span>`;
+  }
+  if (sc.type === "pdf") {
+    return `<div class="doc"><div class="ico">PDF</div><div><div class="nm">${esc(sc.file)}</div><div class="sb">${sc.pages} pages · PDF · ${sc.size}</div></div></div>`;
+  }
+  if (sc.type === "link") {
+    return `<div class="lp"><div class="a">${esc(sc.pv.title)}</div><div class="b">${esc(sc.pv.site)}</div><div class="b">${esc(sc.pv.host)}</div></div>${fmt(sc.url, false)}`;
+  }
+  return fmt(sc.text, false);
+}
+function bindVoice(el) {
+  const btn = el.b.querySelector(".vplay"); if (!btn) return;
+  btn.addEventListener("click", () => {
+    const bars = [...el.b.querySelectorAll(".wave i")];
+    bars.forEach(b => b.classList.remove("on"));
+    let i = 0;
+    const iv = setInterval(() => { if (i >= bars.length) return clearInterval(iv); bars[i++].classList.add("on"); }, 110);
+  });
+}
+const quoteOf = sc => ({who: "You", text: sc.type === "voice" ? "🎤 Voice message (" + sc.dur + ")" : sc.type === "image" ? "📷 Photo"
+  : sc.type === "pdf" ? "📄 " + sc.file : sc.type === "link" ? sc.url : sc.text});
+
+/* ================= pipeline (info pane) ================= */
+const STEPS = [
+  ["Read the message", "Text, screenshot (OCR), voice note, PDF or link"],
+  ["Extract claims", "Up to 5 checkable claims; opinions and greetings skipped"],
+  ["Find evidence", "Fact-check API and allowlisted trusted sites only"],
+  ["Judge", "Verdict from the evidence alone, then a code guardrail"],
+  ["Reply", "Verdict, what is wrong, sources, in your language"],
+];
+const STEP1 = {text: "Read the message", image: "Read text from the image (OCR)", voice: "Transcribe the voice note", pdf: "Read the PDF", link: "Fetch the article"};
+const stepsEl = $("#steps");
+function renderSteps() {
+  stepsEl.innerHTML = STEPS.map((s, i) => `<li><span class="dot">${i + 1}</span><div><div class="tt">${s[0]}</div><div class="d">${s[1]}</div></div></li>`).join("");
+}
+function setStep(i, state, title, detail) {
+  const li = stepsEl.children[i]; if (!li) return;
+  li.className = state;
+  if (title) li.querySelector(".tt").textContent = title;
+  if (detail) li.querySelector(".d").textContent = detail;
+  if (state === "done") li.querySelector(".dot").textContent = "✓";
+}
+
+/* ================= bot logic ================= */
+function cardText(c, lang) {
+  const L = [`*${t("claim", lang)}:* ${c.claim[lang]}`,
+    `*${t("verdict", lang)}:* ${EMOJI[c.label]} ${LABELS[c.label][lang]}`];
+  if (c.wrong) L.push(`*${t("wrong", lang)}:* ${c.wrong[lang]}`);
+  if (c.ev.length) {
+    L.push(`*${t("evidence", lang)}:*`);
+    c.ev.forEach((e, i) => L.push(`${i + 1}. ${e.src} (${e.date}): “${e.q}”\nhttps://${e.domain}`));
+  }
+  L.push(`*${t("summary", lang)}:* ${c.summary[lang]}`);
+  return L.join("\n");
+}
+
+let lastTrace = null;
+async function runCheck(sc, userEl, detected, quote, ep) {
+  const lang = prefLang || detected;
+  lastTrace = {sc, lang};
+  await sleep(500, ep); tick(userEl, "delivered");
+  await sleep(600, ep); tick(userEl, "read");
+  showTyping(); await sleep(700, ep);
+  hideTyping(); addIn(t("checking", lang), {quote});
+  showTyping();
+
+  renderSteps();
+  const nSrc = sc.claims.reduce((n, c) => n + c.ev.length, 0);
+  const verdicts = sc.claims.map(c => LABELS[c.label].en).join(", ");
+  const guard = nSrc ? "every verdict cites evidence" : "no evidence, so forced to Cannot be confirmed";
+  const plan = [
+    [STEP1[sc.type], sc.ingest, 800],
+    ["Extract claims", `${sc.claims.length} claim${sc.claims.length > 1 ? "s" : ""} found${sc.found ? ` (top ${sc.claims.length} of ${sc.found})` : ""}`, 700],
+    ["Find evidence", nSrc ? `${nSrc} source${nSrc > 1 ? "s" : ""} kept, allowlist only` : "No allowlisted source matched", 1100],
+    ["Judge", `${verdicts}. ${guard[0].toUpperCase() + guard.slice(1)}.`, 900],
+    ["Reply", `Sent in ${LANGEN[lang]}`, 500],
+  ];
+  for (let i = 0; i < plan.length; i++) {
+    setStep(i, "active", plan[i][0]);
+    await sleep(plan[i][2], ep);
+    setStep(i, "done", plan[i][0], plan[i][1]);
+  }
+
+  const msgs = [];
+  if (sc.type === "voice") msgs.push(`🎙️ *${t("heard", lang)} (${LANGN[sc.lang]}):*\n“${sc.transcript}”`);
+  if (sc.type === "image") msgs.push(`🖼️ *${t("ocr", lang)} (${LANGN[sc.lang]}):*\n“${sc.ocr}”`);
+  if (sc.type === "link") msgs.push(`🔗 *${t("article", lang)}:* ${sc.pv.title}\n${t("published", lang)}: ${sc.date}`);
+  if (sc.type === "pdf") msgs.push(t("pdfnote", lang, {file: sc.file, pages: sc.pages, found: sc.found, n: sc.claims.length}));
+  sc.claims.forEach(c => msgs.push(cardText(c, lang)));
+  msgs[msgs.length - 1] += "\n\n" + t("footer", lang);
+
+  for (let i = 0; i < msgs.length; i++) {
+    hideTyping(); addIn(msgs[i]);
+    if (i < msgs.length - 1) { showTyping(); await sleep(900, ep); }
+  }
+}
+
+async function replyPlain(text, ep, userEl, buttons, listBtn) {
+  await sleep(450, ep); if (userEl) tick(userEl, "delivered");
+  await sleep(500, ep); if (userEl) tick(userEl, "read");
+  showTyping(); await sleep(900, ep); hideTyping();
+  const m = addIn(text);
+  if (listBtn) {
+    const lb = document.createElement("button");
+    lb.type = "button"; lb.className = "lbtn";
+    lb.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 5h2v2H3V5zm4 0h14v2H7V5zM3 11h2v2H3v-2zm4 0h14v2H7v-2zM3 17h2v2H3v-2zm4 0h14v2H7v-2z"/></svg>View samples';
+    lb.addEventListener("click", openSheet);
+    m.b.appendChild(lb);
+  }
+  if (buttons) addButtons(m.row, buttons);
+}
+
+/* ================= user actions ================= */
+function sendScenario(key, opts = {}) {
+  interacted = true; closeAttach(); closeSheet();
+  const sc = SC[key];
+  const label = sc.forwarded ? MANY : (opts.fwd ? "Forwarded" : "");
+  const el = addBubble({dir: "out", body: outBody(sc), forwarded: label, cls: sc.type === "voice" ? "voice-b" : "",
+    preview: true});
+  bindVoice(el);
+  enqueue(ep => runCheck(sc, el, sc.lang, quoteOf(sc), ep));
+}
+
+function route(text) {
+  const s = text.trim().toLowerCase();
+  if (/^(hindi|हिंदी|हिन्दी)[\s!.]*$/.test(s)) return {cmd: "lang", v: "hi"};
+  if (/^(marathi|मराठी)[\s!.]*$/.test(s)) return {cmd: "lang", v: "mr"};
+  if (/^english[\s!.]*$/.test(s)) return {cmd: "lang", v: "en"};
+  if (/^(sample|samples|demo|examples?|try)[\s!.]*$/.test(s)) return {cmd: "sample"};
+  if (/^(hi|hii|hello|hey|help|start|namaste|नमस्ते|नमस्कार|thanks|thank you|ok|okay)[\s!.]*$/.test(s)) return {cmd: "help"};
+  if (/diabet|turmeric|lemon|मधुमेह|डायबिटीज|हल्दी|हळद/.test(s)) return {sc: "health"};
+  if (/laptop|yojana|लैपटॉप|लॅपटॉप|योजना/.test(s)) return {sc: "scheme"};
+  if (/\bpan\b|aadhaar|aadhar|आधार|पैन|पॅन/.test(s)) return {sc: "pan"};
+  if (/\bupi\b|यूपीआई/.test(s)) return {sc: "upi"};
+  if (/chandrayaan|moon landing|चंद्रयान|चांद्रयान/.test(s)) return {sc: "moon"};
+  if (s.length < 14) return {cmd: "noclaim"};
+  return {sc: "_free"};
+}
+
+function sendTyped(raw, shown, opts = {}) {
+  const text = raw.trim(); if (!text) return;
+  interacted = true; closeAttach();
+  const detected = detectLang(text);
+  const el = addBubble({dir: "out", body: fmt(shown || text, false), forwarded: opts.fwd ? "Forwarded" : ""});
+  const r = route(text);
+  const lang = prefLang || detected;
+  if (r.cmd === "lang") {
+    prefLang = r.v;
+    enqueue(ep => replyPlain(t("lang_set", r.v), ep, el));
+  } else if (r.cmd === "help") {
+    enqueue(ep => replyPlain(t("help", lang), ep, el, WELCOME_BTNS));
+  } else if (r.cmd === "sample") {
+    enqueue(ep => replyPlain(t("sample", lang), ep, el, null, true));
+  } else if (r.cmd === "noclaim") {
+    enqueue(ep => replyPlain(t("no_claims", lang), ep, el));
+  } else {
+    let sc;
+    if (r.sc === "_free") {
+      const c = text.length > 220 ? text.slice(0, 219) + "…" : text;
+      sc = {type: "text", text: c, cat: "other", lang: detected, ingest: `Text message · ${LANGEN[detected]}`,
+        claims: [{claim: {en: c, hi: c, mr: c}, label: "CANNOT_BE_CONFIRMED", wrong: STR.no_evidence, ev: [], summary: STR.sum_unknown}]};
+    } else {
+      sc = {...SC[r.sc], type: "text", text: SC[r.sc].text || text, ingest: `Text message · ${LANGEN[detected]}`};
+    }
+    enqueue(ep => runCheck(sc, el, detected, {who: "You", text: shown || text}, ep));
+  }
+}
+
+/* voice recording (simulated) */
+let recTimer = null;
+function startRecording() {
+  if ($("#composer").classList.contains("recording")) return;
+  closeAttach();
+  $("#composer").classList.add("recording");
+  let s = 0; $("#recT").textContent = "0:00";
+  recTimer = setInterval(() => { s++; $("#recT").textContent = "0:0" + s; if (s >= 2) finishRecording(); }, 1000);
+}
+function finishRecording() {
+  clearInterval(recTimer); recTimer = null;
+  $("#composer").classList.remove("recording");
+  sendScenario("upi");
+}
+
+/* attach menu + sample sheet */
+const ATT = [
+  ["Document", "#7f66ff", "pdf", '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/>'],
+  ["Gallery", "#bf59cf", "pan", '<path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z"/>'],
+  ["Audio", "#f96533", "upi", '<path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>'],
+  ["Link", "#009de2", "moon", '<path d="M3.9 12a3.1 3.1 0 0 1 3.1-3.1h4V7H7a5 5 0 0 0 0 10h4v-1.9H7A3.1 3.1 0 0 1 3.9 12zM8 13h8v-2H8v2zm9-6h-4v1.9h4a3.1 3.1 0 0 1 0 6.2h-4V17h4a5 5 0 0 0 0-10z"/>'],
+];
+const attachEl = $("#attach");
+attachEl.innerHTML = ATT.map(a => `<button type="button" data-k="${a[2]}"><span class="c" style="background:${a[1]}"><svg width="24" height="24" viewBox="0 0 24 24">${a[3]}</svg></span>${a[0]}</button>`).join("");
+attachEl.addEventListener("click", e => { const b = e.target.closest("button"); if (b) sendScenario(b.dataset.k); });
+function closeAttach() { attachEl.hidden = true; $("#attachBtn").setAttribute("aria-expanded", "false"); }
+$("#attachBtn").addEventListener("click", () => {
+  attachEl.hidden = !attachEl.hidden;
+  $("#attachBtn").setAttribute("aria-expanded", String(!attachEl.hidden));
+});
+$("#camBtn").addEventListener("click", () => sendScenario("pan"));
+
+$("#opts").innerHTML = SAMPLE_ORDER.map(k => `<button type="button" class="opt" data-k="${k}"><span class="rad"></span><span><span class="o1">${esc(SC[k].title)}</span><br><span class="o2">${esc(SC[k].desc)}</span></span></button>`).join("");
+$("#opts").addEventListener("click", e => { const b = e.target.closest("button"); if (b) sendScenario(b.dataset.k); });
+function openSheet() { $("#scrim").hidden = false; }
+function closeSheet() { $("#scrim").hidden = true; }
+$("#scrim").addEventListener("click", e => { if (e.target.id === "scrim") closeSheet(); });
+
+/* send / mic button */
+const sendBtn = $("#sendBtn");
+const ICON_SEND = '<path d="M3.4 20.4 21 12 3.4 3.6 3.39 10l12.6 2-12.6 2z"/>';
+const ICON_MIC = '<path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/>';
+function syncSend() {
+  const has = input.value.trim().length > 0;
+  sendBtn.querySelector("svg").innerHTML = has ? ICON_SEND : ICON_MIC;
+  sendBtn.setAttribute("aria-label", has ? "Send" : "Voice message");
+}
+input.addEventListener("input", syncSend);
+$("#composer").addEventListener("submit", e => {
+  e.preventDefault();
+  if ($("#composer").classList.contains("recording")) return finishRecording();
+  if (input.value.trim()) { const v = input.value; input.value = ""; syncSend(); sendTyped(v); }
+  else startRecording();
+});
+
+/* list filters, search */
+$("#filters").addEventListener("click", e => {
+  const b = e.target.closest(".fchip"); if (!b) return;
+  filter = b.dataset.f;
+  document.querySelectorAll(".fchip").forEach(x => x.classList.toggle("on", x === b));
+  renderList();
+});
+$("#q").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); renderList(); });
+
+/* header, menu, info */
+function toggleInfo(force) {
+  if (wide()) app.classList.toggle("info-open", force);
+  else setView(force === false ? "chat" : "info");
+}
+$("#who").addEventListener("click", () => { if (active === "bot") toggleInfo(true); });
+$("#infoClose").addEventListener("click", () => toggleInfo(false));
+$("#backBtn").addEventListener("click", () => setView("list"));
+$("#moreBtn").addEventListener("click", e => { e.stopPropagation(); $("#menu").hidden = !$("#menu").hidden; });
+document.addEventListener("click", () => { $("#menu").hidden = true; });
+$("#mInfo").addEventListener("click", () => { openChat("bot"); toggleInfo(true); });
+$("#mClear").addEventListener("click", () => { reset(); interacted = true; });
+$("#iClear").addEventListener("click", () => { reset(); interacted = true; toggleInfo(false); });
+
+const WELCOME_BTNS = [["See a sample", "sample"], ["हिन्दी में", "HINDI"], ["मराठीत", "MARATHI"]];
+function seed() {
+  feed.innerHTML = ""; botState.last = null; typingRow = null;
+  const d = document.createElement("div"); d.className = "date"; d.textContent = "Today"; feed.appendChild(d);
+  const s = document.createElement("div"); s.className = "sys";
+  s.textContent = "Prototype: replies and evidence are simulated samples. Nothing in this chat is a real fact-check.";
+  feed.appendChild(s);
+  const m = addIn(STR.help.en, {preview: false});
+  addButtons(m.row, WELCOME_BTNS);
+  const c = chatById("bot"); c.preview = "Hi! I check forwarded messages…"; c.time = "now"; c.unread = 0;
+}
+function reset() {
+  epoch++; prefLang = null; chain = Promise.resolve();
+  clearInterval(recTimer); $("#composer").classList.remove("recording");
+  closeSheet(); setSub("online"); renderSteps(); seed();
+  if (active !== "bot") openChat("bot"); else renderList();
+}
+
+/* ================= forward flow (long-press / menu, then pick chats) ================= */
+const ctx = $("#ctx");
+function closeCtx() { ctx.hidden = true; }
+document.addEventListener("click", closeCtx);
+function openCtx(pos, i) {
+  const c = chatById(active), m = c.msgs[i];
+  ctx.innerHTML = `<button data-a="fwd">Forward</button><button data-a="star">${m.star ? "Unstar" : "Star"}</button><button data-a="sel">Select</button>`;
+  ctx.hidden = false;
+  ctx.style.left = Math.max(8, Math.min(pos.left, innerWidth - 190)) + "px";
+  ctx.style.top = Math.max(8, Math.min(pos.bottom + 4, innerHeight - 150)) + "px";
+  ctx.onclick = e => {
+    const a = e.target.closest("button") && e.target.closest("button").dataset.a; if (!a) return;
+    closeCtx();
+    if (a === "fwd") openForward([i]);
+    if (a === "star") { m.star = !m.star; renderOther(c); }
+    if (a === "sel") enterSel(i);
+  };
+}
+$("#selX").addEventListener("click", () => { sel.clear(); updateSel(); });
+$("#selStar").addEventListener("click", () => {
+  const c = chatById(active); const on = [...sel].some(i => !c.msgs[i].star);
+  sel.forEach(i => { c.msgs[i].star = on; }); sel.clear(); renderOther(c);
+});
+$("#selFwd").addEventListener("click", () => openForward([...sel].sort((a, b) => a - b)));
+
+let fwdItems = [], fwdFrom = null; const fwdSel = new Set();
+function openForward(idxs) {
+  const c = chatById(active);
+  fwdItems = idxs.map(i => c.msgs[i]); fwdFrom = c.id; fwdSel.clear();
+  $("#dq").value = ""; renderDlg(); $("#dlg").hidden = false;
+}
+function closeDlg() { $("#dlg").hidden = true; }
+function renderDlg() {
+  const q = $("#dq").value.trim().toLowerCase();
+  const list = $("#dlist"); list.innerHTML = "";
+  CHATS.filter(c => c.id !== fwdFrom && (!q || c.name.toLowerCase().includes(q))).forEach(c => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "drow" + (fwdSel.has(c.id) ? " on" : "");
+    b.innerHTML = `<span class="cb"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>${avatarHtml(c, "s40")}
+      <span><span class="n1">${esc(c.name)}</span><br><span class="n2">${c.verified ? "Business account" : c.group ? esc(c.members) : "Hey there! I am using WhatsApp."}</span></span>`;
+    b.addEventListener("click", () => {
+      if (fwdSel.has(c.id)) fwdSel.delete(c.id); else if (fwdSel.size < 5) fwdSel.add(c.id);
+      renderDlg();
+    });
+    list.appendChild(b);
+  });
+  $("#dfoot").hidden = fwdSel.size === 0;
+  $("#dnames").textContent = [...fwdSel].map(id => chatById(id).name).join(", ");
+}
+$("#dq").addEventListener("input", renderDlg);
+$("#dlgX").addEventListener("click", closeDlg);
+$("#dlg").addEventListener("click", e => { if (e.target.id === "dlg") closeDlg(); });
+let toastTimer = null;
+function toast(msg) {
+  const el = $("#toast"); el.textContent = msg; el.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+$("#dsend").addEventListener("click", () => {
+  const targets = [...fwdSel], items = fwdItems.slice();
+  if (!targets.length) return;
+  closeDlg(); sel.clear(); updateSel(); interacted = true;
+  let toBot = false;
+  targets.forEach(id => {
+    if (id === "bot") { toBot = true; return; }
+    const c = chatById(id);
+    items.forEach(m => c.msgs.push({out: true, fwd: true, sc: m.sc, text: m.text, t: time()}));
+    c.time = time(); c.day = "Today";
+    CHATS.splice(CHATS.indexOf(c), 1); CHATS.splice(1, 0, c);
+  });
+  toast(items.length > 1 ? "Messages forwarded" : "Message forwarded");
+  if (toBot) {
+    openChat("bot");
+    items.forEach(m => { if (m.sc) sendScenario(m.sc, {fwd: true}); else sendTyped(m.text, null, {fwd: true}); });
+  } else if (targets.length === 1) openChat(targets[0]);
+  else renderList();
+});
+
+/* ================= backend page ================= */
+const hash16 = str => { let h = 5381; for (const ch of str) h = ((h << 5) + h + ch.charCodeAt(0)) >>> 0; return h.toString(16).padStart(8, "0") + ((h * 2654435761) >>> 0).toString(16).padStart(8, "0"); };
+const J = o => JSON.stringify(o, null, 2);
+const clip = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+const NODES = {phone: "Your phone", wa: "WhatsApp", twilio: "Twilio", api: "FastAPI server", llm: "LLM", search: "Search + Fact Check API", db: "SQLite"};
+const STANCE = {FALSE: ["contradicts", "contradicts"], VERIFIED: ["supports", "supports"], OUTDATED: ["contradicts", "contradicts"], PARTLY_SUPPORTED: ["supports", "contradicts"], CANNOT_BE_CONFIRMED: []};
+
+function buildTrace() {
+  const tr = lastTrace || {sc: SC.health, lang: "en"};
+  const sc = tr.sc, lang = tr.lang;
+  const n = sc.claims.length;
+  const media = {image: "image/jpeg", voice: "audio/ogg; codecs=opus", pdf: "application/pdf"}[sc.type];
+  const bodyText = media ? "" : (sc.type === "link" ? sc.url : (sc.text || ""));
+  const steps = [];
+  const add = o => steps.push(o);
+
+  add({nodes: ["phone", "wa"], tag: "WhatsApp", dt: 0, title: "You forward the message",
+    desc: "WhatsApp sends it to the business number that ForwardCheck listens on. For the hackathon that is the Twilio WhatsApp sandbox.",
+    phone: {dir: "out", html: outBody(sc), fwd: sc.forwarded ? MANY : "Forwarded"}});
+
+  const form = {From: "whatsapp:+91XXXXXXXXXX", To: "whatsapp:+14155238886", NumMedia: media ? "1" : "0", Body: clip(bodyText, 150)};
+  if (media) { form.MediaUrl0 = "https://api.twilio.com/2010-04-01/Accounts/AC…/Messages/MM…/Media/ME…"; form.MediaContentType0 = media; }
+  add({nodes: ["wa", "twilio", "api"], tag: "POST /whatsapp", dt: 140, title: "Twilio calls our webhook",
+    desc: "Twilio turns the WhatsApp message into a normal HTTP form post to our server.",
+    code: "POST https://<our-host>/whatsapp\nContent-Type: application/x-www-form-urlencoded\nX-Twilio-Signature: 3q2+7wmK…\n\n" + J(form)});
+
+  add({nodes: ["api"], tag: "main.py · twilio_signature_ok()", dt: 6, title: "Check the request really came from Twilio",
+    desc: "The server recomputes an HMAC-SHA1 over the URL and the sorted form fields with the Twilio auth token. If it does not match the header, the answer is 403, so nobody can fake a message.",
+    code: "expected = base64(hmac_sha1(auth_token, url + sorted(params)))\ncompare_digest(expected, header)  →  True"});
+
+  add({nodes: ["api", "db"], tag: "store.py · get_lang()", dt: 8, title: "Look up the saved language",
+    desc: "SQLite keeps the reply language per phone number. The words HINDI, MARATHI, ENGLISH and the help words are answered right here and stop. Anything else carries on.",
+    code: `get_lang("whatsapp:+91XXXXXXXXXX")  →  ${prefLang ? '"' + prefLang + '"' : "None"}\nbody in LANG_WORDS / HELP_WORDS?  →  no, continue`});
+
+  add({nodes: ["api", "twilio", "wa", "phone"], tag: "main.py · whatsapp()", dt: 6, title: "Answer Twilio straight away",
+    desc: "Checking takes seconds and Twilio wants a quick answer. So the server replies with a short TwiML message now and puts the real work on a background task.",
+    code: `<Response><Message>${t("checking", lang)}</Message></Response>\n\nbackground.add_task(process_whatsapp, user, body, media_url, media_type, pref)`,
+    phone: {dir: "in", text: t("checking", lang)}});
+
+  const ing = {
+    text: ["ingest.py · ingest()", "Read the text", "Plain text is used as it is. Any URL inside it is fetched too.", 12,
+      J({input_type: "text", language: sc.lang, text: clip(sc.text || "", 120)})],
+    image: ["media.py · Tesseract OCR", "Read the text inside the image", "The image is downloaded from Twilio with our credentials (only twilio.com hosts, 16 MB cap). Tesseract reads English, Hindi and Marathi. A vision model steps in only if confidence is low.", 1380,
+      J({input_type: "image", engine: "tesseract eng+hin+mar", confidence: 91, vision_fallback: false, text: clip(sc.ocr || "", 140)})],
+    voice: ["media.py · ffmpeg + speech-to-text", "Turn the voice note into text", "WhatsApp voice notes arrive as OGG/Opus. ffmpeg converts them, then a speech model transcribes and detects the language.", 3100,
+      J({input_type: "audio", ffmpeg: "ogg/opus to 16 kHz wav", language: sc.lang, duration_s: 18, text: clip(sc.transcript || "", 140)})],
+    pdf: ["ingest.py · PyMuPDF", "Read the PDF", "Text is pulled from each page, scanned pages go through OCR. Long documents are cut into chunks and only the most check-worthy claims are kept.", 1900,
+      J({input_type: "pdf", pages: sc.pages, ocr_pages: 0, candidate_claims: sc.found, kept: n})],
+    link: ["net.py · safe_get() + extract_html()", "Fetch the article", "The link is fetched through a guarded client (no private addresses), then the main text and the publish date are extracted.", 1500,
+      J({input_type: "url", source_url: sc.url, title: sc.pv && sc.pv.title, published: sc.date, text: "…"})],
+  }[sc.type];
+  add({nodes: sc.type === "text" ? ["api"] : ["api", "twilio"], tag: ing[0], dt: ing[3], title: ing[1], desc: ing[2], code: ing[4]});
+
+  const claimsJson = sc.claims.map((c, i) => ({id: "c" + (i + 1), text: c.claim[sc.lang] || c.claim.en, text_en: c.claim.en,
+    category: sc.cat || "other", time_sensitive: c.label === "OUTDATED", claimed_date_hint: null}));
+  add({nodes: ["api", "llm"], tag: "claims.py · extract()", dt: 1150, title: "Pull out the claims worth checking",
+    desc: "One LLM call that must answer in JSON. Only factual, self-contained claims are kept (at most 5). Opinions, greetings and prayers are skipped.",
+    code: (sc.found ? `found ${sc.found} claims, keeping the ${n} most important\n\n` : "") + J(claimsJson)});
+
+  sc.claims.forEach((c, i) => {
+    const suffix = n > 1 ? ` · claim ${i + 1} of ${n}` : "";
+    const kw = c.claim.en.replace(/[^\w\s%₹]/g, "").split(/\s+/).filter(w => w.length > 3).slice(0, 6).join(" ");
+    const st = STANCE[c.label] || [];
+    const ev = c.ev.map((e, k) => ({id: "e" + (k + 1), source_name: e.src, domain: e.domain, published_at: e.date, snippet: clip(e.q, 90)}));
+    const noise = c.ev.length ? ["healthtipsdaily.example", "viral-news24.example"] : ["viral-news24.example", "dailyforwards.example", "gyaan-hub.example"];
+    const lines = [`cache_key = sha256("${lang}|${c.claim.en.toLowerCase().replace(/\W+/g, " ").trim().slice(0, 36)}…")  →  miss`,
+      `queries   = ["${kw}", "${clip(c.claim.en, 50)}"]`,
+      `fact_check_api(...)  →  ${c.ev.length ? 1 : 0} review`, `web_search(...)      →  ${c.ev.length + noise.length} results`];
+    c.ev.forEach(e => lines.push(`  ✓ ${e.domain.padEnd(18)} on allowlist · ${e.date}`));
+    noise.forEach(d => lines.push(`  ✗ ${d.padEnd(18)} not on allowlist, dropped`));
+    lines.push(`kept ${c.ev.length} → evidence list`);
+    add({nodes: ["api", "db", "search"], tag: "pipeline.py · check_claim() → retrieve.gather()", dt: 2300, title: "Find evidence" + suffix,
+      desc: "The cache is checked first. Then the Google Fact Check API and a web search run, and only trusted domains survive (government, health bodies, fact-checkers, news agencies). The most relevant passage and its date are taken from each page.",
+      code: lines.join("\n") + (ev.length ? "\n\n" + J(ev) : "")});
+
+    const verdict = c.ev.length ? {label: c.label, what_is_wrong: clip(c.wrong[lang] || c.wrong.en, 150), evidence_ids: c.ev.map((_, k) => "e" + (k + 1)),
+      evidence_stances: Object.fromEntries(c.ev.map((_, k) => ["e" + (k + 1), st[k] || st[0]])), confidence: c.ev.length > 1 ? "high" : "medium",
+      summary: clip(c.summary[lang] || c.summary.en, 100)} : null;
+    add({nodes: ["api", "llm"], tag: "judge.py · judge()", dt: c.ev.length ? 1200 : 3, title: "Judge using the evidence only" + suffix,
+      desc: c.ev.length ? "The prompt gives the model the claim and the numbered evidence and nothing else. It may not use outside knowledge and has to cite evidence ids."
+        : "There is no evidence, so the model is not called at all.",
+      code: c.ev.length ? J(verdict) : "if not evidence:\n    return Verdict(label=CANNOT_BE_CONFIRMED)   # no LLM call"});
+
+    const g = c.ev.length ? [
+      "evidence list not empty ............ ✓",
+      `cited ids exist in the list ......... ✓ (${verdict.evidence_ids.join(", ")})`,
+      `stance agrees with the label ........ ✓ (${c.label} ← ${[...new Set(Object.values(verdict.evidence_stances))].join(", ")})`,
+      c.label === "OUTDATED" ? `OUTDATED has a dated source ........ ✓ (${c.ev[0].date})` : "OUTDATED needs a dated source ..... n/a",
+      `→ verdict kept as ${c.label}, confidence ${verdict.confidence}`,
+      "cache_put(...)  # kept 24 h (3 h if time-sensitive)"] : [
+      "evidence list not empty ............ ✗ (0 items)",
+      "→ forced to CANNOT_BE_CONFIRMED, no source is invented",
+      "cache_put skipped  # empty results are never cached"];
+    add({nodes: ["api", "db"], tag: "judge.py · apply_guardrail()", dt: 2, title: "Guardrail in plain code" + suffix,
+      desc: "Ordinary code, not the model, has the last word. The model cannot talk its way past these checks.", code: g.join("\n")});
+  });
+
+  const msgs = [];
+  if (sc.type === "voice") msgs.push(`🎙️ *${t("heard", lang)} (${LANGN[sc.lang]}):*\n“${sc.transcript}”`);
+  if (sc.type === "image") msgs.push(`🖼️ *${t("ocr", lang)} (${LANGN[sc.lang]}):*\n“${sc.ocr}”`);
+  if (sc.type === "link") msgs.push(`🔗 *${t("article", lang)}:* ${sc.pv.title}\n${t("published", lang)}: ${sc.date}`);
+  if (sc.type === "pdf") msgs.push(t("pdfnote", lang, {file: sc.file, pages: sc.pages, found: sc.found, n}));
+  sc.claims.forEach(c => msgs.push(cardText(c, lang)));
+  msgs[msgs.length - 1] += "\n\n" + t("footer", lang);
+  const nSrc = sc.claims.reduce((a, c) => a + c.ev.length, 0);
+  add({nodes: ["api", "twilio", "wa", "phone"], tag: "reply.py · format_messages() → Twilio REST", dt: 640 * msgs.length, title: "Format and send the replies",
+    desc: "Each result becomes one WhatsApp message under 1,500 characters, in the user's language. They are posted to Twilio one at a time, 0.6 s apart, so they arrive in order. Only the verdict labels and timing are logged, never the message.",
+    code: `for m in format_messages(result):          # ${msgs.length} message${msgs.length > 1 ? "s" : ""}\n    POST https://api.twilio.com/2010-04-01/Accounts/AC…/Messages.json\n         From=whatsapp:+14155238886  To=whatsapp:+91XXXXXXXXXX\n         Body="${clip(msgs[0].replace(/\n/g, " "), 70)}"\n    sleep(0.6)`,
+    phone: msgs.map(m => ({dir: "in", text: m}))});
+
+  add({nodes: [], tag: "done", dt: 0, end: true, title: "Reply delivered",
+    desc: `${msgs.length} message${msgs.length > 1 ? "s" : ""} for ${n} claim${n > 1 ? "s" : ""}, built from ${nSrc} cited source${nSrc === 1 ? "" : "s"}. The user sees the verdict, what is wrong and the evidence inside WhatsApp.`});
+  return {steps, sc};
+}
+
+let bkRun = 0;
+function backendIdle() {
+  const tr = lastTrace || {sc: SC.health};
+  $("#bkMsg").innerHTML = `<div class="msg out tail" style="max-width:100%;position:relative">${tr.sc.forwarded ? fwdHtml(MANY) : fwdHtml("Forwarded")}${outBody(tr.sc)}<span class="meta">${time()}</span></div>`;
+}
+async function playBackend() {
+  const run = ++bkRun, btn = $("#bkGo"), tl = $("#tl"), strip = $("#bkStrip"), phone = $("#bkPhone");
+  const {steps} = buildTrace();
+  btn.disabled = true; $("#bkGoT").textContent = "Replaying…";
+  tl.innerHTML = ""; phone.innerHTML = "";
+  strip.hidden = false; $("#bkGrid").hidden = false;
+  strip.innerHTML = ["phone", "wa", "twilio", "api", "llm", "search", "db"].map((k, i) =>
+    (i ? '<span class="ar">›</span>' : "") + `<span class="nd" data-n="${k}">${NODES[k]}</span>`).join("");
+  strip.scrollIntoView({behavior: "smooth", block: "start"});
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  let clock = 0;
+  for (let i = 0; i < steps.length; i++) {
+    if (run !== bkRun) return;
+    const st = steps[i];
+    clock += st.dt;
+    strip.querySelectorAll(".nd").forEach(nd => nd.classList.toggle("on", st.nodes.includes(nd.dataset.n)));
+    const li = document.createElement("li");
+    if (st.end) li.className = "end";
+    li.innerHTML = `<span class="nb">${st.end ? "✓" : i + 1}</span><div class="cd"><div class="tg"><code>${esc(st.tag)}</code><span>${st.end ? "total " : "t = "}${(clock / 1000).toFixed(2)} s</span></div>
+      <h3>${esc(st.title)}</h3><p>${esc(st.desc)}</p>${st.code ? `<pre>${esc(st.code)}</pre>` : ""}</div>`;
+    tl.appendChild(li);
+    li.scrollIntoView({behavior: "smooth", block: "nearest"});
+    if (st.phone) {
+      for (const p of [].concat(st.phone)) {
+        const row = document.createElement("div");
+        row.className = "row " + p.dir;
+        row.innerHTML = `<div class="msg ${p.dir}">${p.fwd ? fwdHtml(p.fwd) : ""}${p.html || fmt(p.text, true)}<span class="meta">${time()}</span></div>`;
+        phone.appendChild(row); phone.scrollTop = phone.scrollHeight;
+        await wait(250);
+        if (run !== bkRun) return;
+      }
+    }
+    await wait(st.end ? 0 : 1000);
+  }
+  if (run === bkRun) { btn.disabled = false; $("#bkGoT").textContent = "Replay"; }
+}
+$("#bkGo").addEventListener("click", playBackend);
+function onRoute() {
+  const bk = location.hash === "#backend";
+  document.body.classList.toggle("bk", bk);
+  bkRun++;
+  if (bk) {
+    backendIdle(); $("#bkGo").disabled = false; $("#bkGoT").textContent = "See how it works at the backend";
+    $("#bkStrip").hidden = true; $("#bkGrid").hidden = true; $("#tl").innerHTML = ""; $("#bkPhone").innerHTML = ""; $("#backend").scrollTop = 0;
+  }
+}
+addEventListener("hashchange", onRoute);
+$("#mBack").addEventListener("click", () => { location.hash = "#backend"; });
+
+/* boot */
+renderSteps(); seed(); syncSend(); openChat("bot");
+if (wide() && innerWidth >= 1280) app.classList.add("info-open");
+onRoute();
+setTimeout(() => { if (!interacted && epoch === 0 && active === "bot" && location.hash !== "#backend") sendScenario("health"); }, 1600);
+})();
+</script>
+</body>
+</html>
