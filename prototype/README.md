@@ -15,3 +15,6 @@ All replies and evidence are simulated samples that mirror the real reply format
 2. The bot chat opens with your forwarded message and replies with verdicts. Business info (right pane) shows the live steps.
 3. Open `index.html#backend` (the `</>` icon in the rail, the chat menu, or Business info) and press the single button to replay what the server does for the message you last forwarded.
 4. Reply HINDI / MARATHI in the bot chat to switch language.
+
+## Live mode
+Deploy `forwardcheck/` (see its README, "Deploy the API"), then in the prototype open Business info > Live backend, paste the URL and press Connect, or open the page with `?api=https://your-service.onrender.com`.

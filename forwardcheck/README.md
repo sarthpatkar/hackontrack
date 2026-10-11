@@ -94,3 +94,9 @@ web/index.html   single-file UI (record voice, upload, live progress, evidence c
   panel shows each date so users can judge.
 * Tesseract is weak on Devanagari, so when Indic text is detected a vision model is used if a key is available.
 * The Twilio sandbox is for demos; production needs the official WhatsApp Business API.
+
+## Deploy the API (so the static prototype can run live checks)
+1. Push the repo, then on https://render.com choose New > Blueprint and select it (uses `forwardcheck/render.yaml` and the Dockerfile).
+2. Add at least one LLM key (`GEMINI_API_KEY` or `GROQ_API_KEY`) in the service's environment.
+3. Open the prototype, Business info > Live backend, paste the service URL and press Connect. Or open the prototype with `?api=https://your-service.onrender.com`.
+`CORS_ORIGINS` defaults to `*`; set it to your Pages origin to narrow it.

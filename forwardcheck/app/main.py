@@ -15,6 +15,7 @@ from pathlib import Path
 
 import httpx
 from fastapi import BackgroundTasks, FastAPI, File, Form, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 
 from . import store
@@ -30,6 +31,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 log = logging.getLogger("forwardcheck")
 
 app = FastAPI(title="ForwardCheck", version="1.0")
+# Lets the static prototype (GitHub Pages) call /api/* on a deployed server. Narrow with CORS_ORIGINS.
+app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["GET", "POST"], allow_headers=["*"])
 llm = LLM()
 WEB = ROOT / "web"
 

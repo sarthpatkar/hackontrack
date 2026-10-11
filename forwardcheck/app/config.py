@@ -111,6 +111,10 @@ class Settings:
     public_base_url: str = field(default_factory=lambda: os.getenv("PUBLIC_BASE_URL", "").rstrip("/"))
     validate_twilio: bool = field(default_factory=lambda: os.getenv("VALIDATE_TWILIO", "1") != "0")
 
+    cors_origins: list[str] = field(
+        default_factory=lambda: [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
+    )
+
     # limits
     max_claims: int = 5
     max_upload_bytes: int = 16 * 1024 * 1024

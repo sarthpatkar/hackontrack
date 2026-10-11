@@ -6,6 +6,12 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#008069">
 <title>ForwardCheck on WhatsApp</title>
+<meta name="description" content="Forward a WhatsApp message, screenshot, voice note, PDF or link to ForwardCheck and get a verdict with evidence in English, Hindi or Marathi. Interactive prototype.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ForwardCheck: is this forward true?">
+<meta property="og:description" content="A WhatsApp bot that checks forwarded claims against trusted sources and replies in your language. Try the interactive prototype.">
+<meta property="og:image" content="https://sarthpatkar.github.io/hackontrack/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%2300a884'/%3E%3Cpath d='M9 17l5 5 9-11' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -298,6 +304,29 @@ li.done .d{color:var(--ink)}
   .composer{padding:10px 16px}
 }
 
+.steps li.err .dot{border-color:var(--red);color:var(--red);background:var(--panel)}
+.steps li.err .d{color:var(--red)}
+.sheet h3.sub{font-size:13px;color:var(--muted);font-weight:500;padding-top:16px}
+.apirow{display:flex;gap:8px;margin-top:10px}
+.apirow input{flex:1;min-width:0;border:1px solid var(--line);background:var(--search);color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit}
+.apirow button{background:var(--accent);color:#fff;border-radius:8px;padding:0 14px;font-weight:500}
+.apist{margin-top:8px;font-size:13px;color:var(--muted)}
+.apist.bad{color:var(--red)}
+body.is-live .ihead b::after{content:" · live";color:var(--accent)}
+.coach{position:fixed;left:84px;bottom:24px;z-index:35;background:var(--panel);color:var(--ink);border-radius:12px;padding:14px 16px;width:min(320px,calc(100vw - 32px));
+  box-shadow:0 6px 28px rgba(11,20,26,.3);border-left:4px solid var(--accent);animation:pop .3s ease-out}
+.coach p{margin:0 0 10px;line-height:20px}
+.coach .cb2{display:flex;gap:8px}
+.coach button{border-radius:999px;padding:7px 14px;font-weight:500}
+.coach .go{background:var(--accent);color:#fff}
+.coach .no{color:var(--muted)}
+@media (max-width:999px){.coach{left:16px;bottom:84px}}
+.tourbar{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:60;background:#111b21;color:#e9edef;border-radius:12px;padding:12px 14px 12px 18px;
+  display:flex;gap:14px;align-items:center;width:min(640px,calc(100vw - 24px));box-shadow:0 6px 28px rgba(0,0,0,.4)}
+.tourbar span{flex:1;line-height:20px}
+.tourbar button{color:#00a884;font-weight:600;padding:6px 8px}
+.bk-real{margin:16px 0 0;padding:0;list-style:none;display:grid;gap:8px;max-width:56ch;font-size:13.5px;line-height:20px;color:var(--muted)}
+.bk-real b{color:var(--ink)}
 /* ---- backend page ---- */
 :root{--codebg:#f6f8f9;--codeink:#1f2c34;--chip:#e9edef}
 @media (prefers-color-scheme:dark){:root{--codebg:#0b141a;--codeink:#d1d7db;--chip:#2a3942}}
@@ -383,7 +412,7 @@ body.bk .app{display:none}
         <span class="t"><b><span id="hName"></span><svg class="vb" id="hBadge" width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" style="fill:#25d366"/><path d="M7 12.5l3.2 3.2L17 8.8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></b><small id="hSub"></small></span>
       </button>
       <button class="ib" id="moreBtn" aria-label="Menu" aria-haspopup="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></button>
-      <div class="menu" id="menu" hidden><button id="mInfo">Business info</button><button id="mBack">How it works at the backend</button><button id="mClear">Clear chat</button></div>
+      <div class="menu" id="menu" hidden><button id="mInfo">Business info</button><button id="mTour">Take the 60-second tour</button><button id="mBack">How it works at the backend</button><button id="mClear">Clear chat</button></div>
       <div class="selbar" id="selbar"><button class="ib" id="selX" aria-label="Cancel selection"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button><b id="selN">1 selected</b><button class="ib" id="selStar" aria-label="Star"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 17.3l-5.5 3.2 1.5-6.2L3 10l6.3-.5L12 3.5l2.7 6L21 10l-5 4.3 1.5 6.2z"/></svg></button><button class="ib" id="selFwd" aria-label="Forward"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg></button></div>
     </header>
 
@@ -432,17 +461,22 @@ body.bk .app{display:none}
           <li><span>❓</span><span><span class="n">Cannot be confirmed</span><span class="m">No reliable source found, so no guess</span></span></li>
         </ul></div>
       <div class="blk"><a href="#backend" class="biglink">See how this works at the backend <svg width="18" height="18" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6-1.4-1.4L12.2 12 7.6 7.4z"/></svg></a></div>
-      <div class="blk"><p class="d" style="color:var(--muted);font-size:13px">Prototype. Replies and evidence in this demo are simulated samples.</p></div>
+      <div class="blk"><h4>Live backend (optional)</h4><p class="d" style="font-size:13px;color:var(--muted)">Paste the https URL of a deployed ForwardCheck server to run real checks instead of the simulation.</p>
+        <div class="apirow"><input id="apiUrl" type="url" placeholder="https://your-app.onrender.com" aria-label="Backend URL"><button id="apiGo" type="button">Connect</button></div>
+        <div class="apist" id="apiSt" role="status">Simulation mode</div></div>
+      <div class="blk"><p class="d" style="color:var(--muted);font-size:13px">Prototype. Replies are simulated; evidence quotes are taken from real public pages. The forwarded messages are made-up examples.</p></div>
       <div class="blk"><button class="danger" id="iClear">Clear chat</button></div>
     </div>
   </aside>
 </div>
 
 <div class="ctx" id="ctx" hidden></div>
-<div class="toast" id="toast" hidden></div>
+<div class="coach" id="coach" hidden><p><b>New here?</b> Open any chat and forward a message to ForwardCheck, or watch it happen.</p><div class="cb2"><button class="go" id="coachTour">Take the 60-second tour</button><button class="no" id="coachX">Dismiss</button></div></div>
+<div class="tourbar" id="tourbar" hidden><span id="tourT" role="status"></span><button id="tourSkip">Skip tour</button></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <div class="dlg" id="dlg" hidden>
-  <div class="dcard" role="dialog" aria-label="Forward message to">
+  <div class="dcard" role="dialog" aria-modal="true" aria-label="Forward message to">
     <div class="dh"><button class="ib" id="dlgX" aria-label="Close"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button><span>Forward message to</span></div>
     <label class="dsearch"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg><input id="dq" type="search" placeholder="Search" aria-label="Search chats"></label>
     <div class="dsec">Recent chats</div>
@@ -459,7 +493,8 @@ body.bk .app{display:none}
         <h1>What happens after you forward a message to ForwardCheck</h1>
         <p>A forward sets off a short chain of calls between WhatsApp, Twilio, our FastAPI server, an LLM and a few trusted-source searches. Press the button to replay that chain step by step for the message on the right.</p>
         <button class="bk-go" id="bkGo" type="button"><svg viewBox="0 0 24 24" style="fill:currentColor"><path d="M8 5v14l11-7z"/></svg><span id="bkGoT">See how it works at the backend</span></button>
-        <div class="bk-note">Sample data. Step timings are illustrative.</div>
+        <ul class="bk-real"><li><b>Real:</b> the stages, file and function names, request shapes and guardrail rules, all taken from the ForwardCheck server code.</li>
+          <li><b>Simulated here:</b> the LLM and search calls, phone numbers and step timings. Connect a live backend in Business info to run real checks.</li></ul>
       </div>
       <div class="bk-mini"><div class="wall"></div><span class="cap">The message being traced</span><div id="bkMsg" style="position:relative;width:100%"></div></div>
     </section>
@@ -528,6 +563,18 @@ const STR = {
     en: "Please don't forward this until an official announcement appears.",
     hi: "आधिकारिक घोषणा आने तक इसे आगे न भेजें।",
     mr: "अधिकृत घोषणा होईपर्यंत हे पुढे पाठवू नका."},
+  qr_share: {en: "Share result", hi: "नतीजा शेयर करें", mr: "निकाल शेअर करा"},
+  qr_simple: {en: "Explain simply", hi: "आसान में समझाएँ", mr: "सोप्यात सांगा"},
+  qr_another: {en: "Check another", hi: "दूसरा जाँचें", mr: "दुसरे तपासा"},
+  qr_title: {en: "Checked with ForwardCheck", hi: "ForwardCheck से जाँचा गया", mr: "ForwardCheck ने तपासले"},
+  simple_pre: {en: "Short version:", hi: "संक्षेप में:", mr: "थोडक्यात:"},
+  another: {en: "Send me the next message, screenshot, voice note, PDF or link.",
+    hi: "अगला संदेश, स्क्रीनशॉट, वॉइस नोट, PDF या लिंक भेजें।", mr: "पुढचा संदेश, स्क्रीनशॉट, व्हॉइस नोट, PDF किंवा लिंक पाठवा."},
+  toolarge: {en: "That file is too large (limit 16 MB). Please send a smaller one.",
+    hi: "यह फ़ाइल बहुत बड़ी है (सीमा 16 MB)। कृपया छोटी फ़ाइल भेजें।", mr: "ही फाइल खूप मोठी आहे (मर्यादा 16 MB). कृपया लहान फाइल पाठवा."},
+  error: {en: "Sorry, I couldn't check this right now. Please try again in a minute.",
+    hi: "क्षमा करें, अभी इसे जाँच नहीं सका। कृपया एक मिनट बाद फिर कोशिश करें।",
+    mr: "क्षमस्व, आत्ता हे तपासता आले नाही. कृपया एका मिनिटाने पुन्हा प्रयत्न करा."},
   sample: {en: "Pick a sample forward and I'll check it.", hi: "एक नमूना फ़ॉरवर्ड चुनें, मैं उसे जाँचूँगा।", mr: "एक नमुना फॉरवर्ड निवडा, मी तो तपासतो."},
 };
 const t = (k, l, p = {}) => {
@@ -551,8 +598,7 @@ const SC = {
         hi: "कोई भी पेय या घरेलू नुस्खा डायबिटीज़ को ठीक नहीं करता। टाइप 2 डायबिटीज़ को खानपान, कसरत और डॉक्टर की बताई दवाओं से नियंत्रित किया जाता है।",
         mr: "कोणतेही पेय किंवा घरगुती उपाय मधुमेह बरा करत नाही. टाइप 2 मधुमेह आहार, व्यायाम आणि डॉक्टरांनी सांगितलेल्या औषधांनी नियंत्रणात ठेवला जातो."},
       ev: [
-        {src: "World Health Organization", domain: "who.int", date: "2023-04-05", q: "Diabetes is a chronic condition. Treatment combines healthy diet, physical activity and medicines such as insulin where needed."},
-        {src: "ICMR", domain: "icmr.gov.in", date: "2024-05-09", q: "No single food or drink can reverse diabetes; dietary guidance must be paired with medical care."}],
+        {src: "World Health Organization", domain: "who.int", url: "https://www.who.int/news-room/fact-sheets/detail/diabetes", date: "2024-11-14", q: "Some people with type 2 diabetes will need to take medicines to help manage their blood sugar levels."}],
       summary: {en: "No lemon-turmeric water can cure diabetes. Please do not stop your medicines; talk to your doctor.",
         hi: "नींबू-हल्दी का पानी डायबिटीज़ ठीक नहीं कर सकता। अपनी दवाएँ बंद न करें, डॉक्टर से बात करें।",
         mr: "लिंबू-हळदीचे पाणी मधुमेह बरा करू शकत नाही. औषधे बंद करू नका, डॉक्टरांशी बोला."},
@@ -571,8 +617,7 @@ const SC = {
         hi: "PIB फ़ैक्ट चेक ने इस योजना को फ़र्ज़ी बताया है। ऐसी कोई योजना नहीं है, और लिंक आपकी निजी जानकारी माँगता है।",
         mr: "PIB फॅक्ट चेकने ही योजना बनावट असल्याचे सांगितले आहे. अशी कोणतीही योजना नाही आणि लिंक तुमची वैयक्तिक माहिती मागते."},
       ev: [
-        {src: "PIB Fact Check", domain: "pib.gov.in", date: "2024-08-14", q: "Claim that the Government is giving free laptops to all students is #Fake. No such scheme has been announced."},
-        {src: "Ministry of Education", domain: "education.gov.in", date: "2024-08-16", q: "No scheme for free laptop distribution to all students is currently notified."}],
+        {src: "All India Radio News (citing PIB Fact Check)", domain: "newsonair.gov.in", url: "https://newsonair.gov.in/central-government-debunks-claim-of-free-laptop-distribution-for-students/", date: "2026-04-20", q: "The Fact Check Unit of the Press Information Bureau (PIB) has termed the claim fake."}],
       summary: {en: "This is a fake scheme. Do not click the link or share your details.",
         hi: "यह फ़र्ज़ी योजना है। लिंक पर क्लिक न करें और अपनी जानकारी साझा न करें।",
         mr: "ही बनावट योजना आहे. लिंकवर क्लिक करू नका आणि तुमची माहिती देऊ नका."},
@@ -593,8 +638,7 @@ const SC = {
         hi: "यह तारीख बीत चुकी है और इसे बढ़ाया गया था। मार्च 2023 की अधिसूचना के अनुसार आखिरी तारीख 30 जून 2023 थी, और देरी से जोड़ने पर ₹1,000 शुल्क लगता है।",
         mr: "ही तारीख उलटून गेली आहे आणि मुदत वाढवण्यात आली होती. मार्च २०२३ च्या अधिसूचनेनुसार शेवटची तारीख ३० जून २०२३ होती आणि उशिरा जोडल्यास ₹१,००० शुल्क लागते."},
       ev: [
-        {src: "Income Tax Department", domain: "incometax.gov.in", date: "2023-03-28", q: "The last date for intimating Aadhaar to be linked with PAN is extended to 30 June 2023. A fee of ₹1,000 applies."},
-        {src: "PIB", domain: "pib.gov.in", date: "2022-03-30", q: "The deadline for linking PAN with Aadhaar is extended to 31 March 2023."}],
+        {src: "LiveLaw", domain: "livelaw.in", url: "https://www.livelaw.in/amp/news-updates/central-government-extends-date-aadhaar-pan-linking-31-march-30-jun-224976", date: "2023-03-28", q: "The last date for linking PAN and Aadhaar has been extended from 31st March to 30th June 2023 by the Central Government."}],
       summary: {en: "This message is old. The date has changed, so check the Income Tax website before paying anyone.",
         hi: "यह संदेश पुराना है। तारीख बदल चुकी है, किसी को पैसे देने से पहले इनकम टैक्स की वेबसाइट देखें।",
         mr: "हा संदेश जुना आहे. तारीख बदलली आहे, कोणालाही पैसे देण्यापूर्वी आयकर विभागाची वेबसाइट पाहा."},
@@ -613,8 +657,7 @@ const SC = {
         hi: "आंशिक रूप से सही: ₹2,000 से ऊपर के कुछ PPI (वॉलेट) मर्चेंट पेमेंट पर 1.1% इंटरचेंज फ़ीस लगी है। लेकिन यह दुकानदार देते हैं, और बैंक खाते से सामान्य UPI पेमेंट मुफ़्त है।",
         mr: "अंशतः बरोबर: ₹२,००० वरील काही वॉलेट (PPI) व्यापारी पेमेंटवर १.१% इंटरचेंज शुल्क लागते. ते व्यापारी भरतात आणि बँक खात्यातून होणारे सामान्य UPI पेमेंट मोफत आहे."},
       ev: [
-        {src: "NPCI", domain: "npci.org.in", date: "2023-03-24", q: "Interchange of 1.1% applies to PPI merchant transactions above ₹2,000. No charges for bank account to bank account UPI payments."},
-        {src: "PIB", domain: "pib.gov.in", date: "2023-03-29", q: "Customers will not be charged for UPI payments made from a bank account."}],
+        {src: "The Week (quoting NPCI)", domain: "theweek.in", url: "https://www.theweek.in/news/biz-tech/2023/03/29/no-charge-on-normal-upi-transactions-interchange-fee-only-for-ppi-merchant-transactions-npci.amp.html", date: "2023-03-29", q: "there are no charges for the bank account to bank account-based UPI payments (i.e. normal UPI payments) … The interchange charges introduced are only applicable for the PPI merchant transactions."}],
       summary: {en: "You will not be charged for normal UPI payments from your bank account.",
         hi: "बैंक खाते से होने वाले सामान्य UPI पेमेंट पर आपसे कोई चार्ज नहीं लगता।",
         mr: "बँक खात्यातून होणाऱ्या सामान्य UPI पेमेंटसाठी तुमच्याकडून शुल्क घेतले जात नाही."},
@@ -632,7 +675,7 @@ const SC = {
       wrong: {en: "There is no medical evidence that cold water causes heart attacks. Heart disease is linked to blood pressure, smoking, diet, diabetes and inactivity.",
         hi: "ठंडा पानी पीने से हार्ट अटैक होने का कोई चिकित्सीय प्रमाण नहीं है। हृदय रोग का संबंध ब्लड प्रेशर, धूम्रपान, खानपान, डायबिटीज़ और कसरत की कमी से है।",
         mr: "थंड पाणी प्यायल्याने हृदयविकाराचा झटका येतो याचा कोणताही वैद्यकीय पुरावा नाही. हृदयरोगाचा संबंध रक्तदाब, धूम्रपान, आहार, मधुमेह आणि व्यायामाच्या अभावाशी आहे."},
-      ev: [{src: "World Health Organization", domain: "who.int", date: "2021-06-11", q: "The most important behavioural risk factors of heart disease are unhealthy diet, physical inactivity, tobacco use and harmful use of alcohol."}],
+      ev: [{src: "World Health Organization", domain: "who.int", url: "https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds)", date: "2025-07-31", q: "The most important behavioural risk factors of heart disease and stroke are unhealthy diet, physical inactivity, …"}],
       summary: {en: "Cold water does not cause heart attacks.", hi: "ठंडा पानी हार्ट अटैक नहीं करता।", mr: "थंड पाणी हृदयविकाराचा झटका आणत नाही."}},
       {claim: {en: "Washing hands with soap reduces the risk of diarrhoea.",
         hi: "साबुन से हाथ धोने से दस्त (डायरिया) का खतरा कम होता है।",
@@ -641,8 +684,7 @@ const SC = {
       wrong: {en: "Confirmed. Handwashing with soap is a proven way to reduce diarrhoeal disease.",
         hi: "पुष्ट। साबुन से हाथ धोना डायरिया कम करने का प्रमाणित तरीका है।",
         mr: "पुष्टी झाली. साबणाने हात धुणे हा जुलाब कमी करण्याचा सिद्ध मार्ग आहे."},
-      ev: [{src: "World Health Organization", domain: "who.int", date: "2022-10-13", q: "Handwashing with soap is one of the most effective ways to prevent diarrhoeal diseases."},
-           {src: "Ministry of Health & Family Welfare", domain: "mohfw.gov.in", date: "2023-10-15", q: "Hand hygiene with soap and water prevents common infections including diarrhoea."}],
+      ev: [{src: "World Health Organization", domain: "who.int", url: "https://www.who.int/news-room/fact-sheets/detail/diarrhoeal-disease", date: "2024-03-07", q: "…use of improved sanitation and hand washing with soap, can reduce disease risk."}],
       summary: {en: "This one is correct. Keep washing hands.", hi: "यह बात सही है। हाथ धोते रहें।", mr: "ही गोष्ट बरोबर आहे. हात धुवत राहा."}},
       {claim: {en: "Food heated in a microwave oven becomes radioactive.",
         hi: "माइक्रोवेव ओवन में गर्म किया खाना रेडियोधर्मी हो जाता है।",
@@ -651,7 +693,7 @@ const SC = {
       wrong: {en: "Microwaves heat food with non-ionising radiation. This does not make food radioactive.",
         hi: "माइक्रोवेव खाने को नॉन-आयनाइज़िंग विकिरण से गर्म करता है। इससे खाना रेडियोधर्मी नहीं होता।",
         mr: "मायक्रोवेव अन्न नॉन-आयनायझिंग किरणांनी गरम करते. त्यामुळे अन्न किरणोत्सारी होत नाही."},
-      ev: [{src: "US FDA", domain: "fda.gov", date: "2022-02-08", q: "Microwave ovens heat food without making it radioactive. The radiation used is non-ionizing."}],
+      ev: [{src: "US EPA", domain: "epa.gov", url: "https://www.epa.gov/radtown/non-ionizing-radiation-used-microwave-ovens", date: "2026-09-29", q: "The non-ionizing radiation used by a microwave oven does not make the food radioactive."}],
       summary: {en: "Microwaved food is safe from radioactivity.", hi: "माइक्रोवेव का खाना रेडियोधर्मी नहीं होता।", mr: "मायक्रोवेवमधील अन्न किरणोत्सारी नसते."}},
     ],
   },
@@ -669,8 +711,7 @@ const SC = {
         hi: "पुष्ट। ISRO का विक्रम लैंडर 23 अगस्त 2023 को चंद्रमा के दक्षिणी ध्रुवीय क्षेत्र के पास उतरा।",
         mr: "पुष्टी झाली. ISRO चे विक्रम लँडर २३ ऑगस्ट २०२३ रोजी चंद्राच्या दक्षिण ध्रुवीय भागाजवळ उतरले."},
       ev: [
-        {src: "ISRO", domain: "isro.gov.in", date: "2023-08-23", q: "Chandrayaan-3 Mission: soft-landing on the Moon achieved on 23 August 2023."},
-        {src: "PIB", domain: "pib.gov.in", date: "2023-08-23", q: "Prime Minister congratulates ISRO scientists on the soft landing of Chandrayaan-3."}],
+        {src: "ISRO", domain: "isro.gov.in", url: "https://www.isro.gov.in/Chandrayaan3.html", date: "2023-08-23", q: "Chandrayaan-3 has successfully soft-landed on the moon."}],
       summary: {en: "This news is correct.", hi: "यह खबर सही है।", mr: "ही बातमी बरोबर आहे."},
     }],
   },
@@ -728,13 +769,12 @@ function fmt(s, link) {
 const time = () => new Date().toLocaleTimeString("en-IN", {hour: "numeric", minute: "2-digit", hour12: true});
 const TICKS = '<span class="ticks" data-s="sent"><svg viewBox="0 0 18 11"><path d="M1 6l3 3 6.5-8"/><path class="t2" d="M7 8.6l1 .9 6.5-8"/></svg></span>';
 const fwdHtml = l => '<div class="fwd"><svg viewBox="0 0 24 24"><path d="M12 8V4l8 8-8 8v-4H4V8h8z"/></svg>' + l + '</div>';
-const MANY = "Forwarded many times";
 const detectLang = s => /[ऀ-ॿ]/.test(s) ? (/(आहे|नाही|आणि|तुम्ही|करा|होते|मला|पुढच्या)/.test(s) ? "mr" : "hi") : "en";
 const plain = s => s.replace(/\*/g, "").replace(/\n+/g, " ").trim();
 
 /* ================= state + queue ================= */
 let prefLang = null, epoch = 0, interacted = false, chain = Promise.resolve(), typingRow = null;
-let active = "bot", botSub = "online", filter = "all", query = "";
+let active = "bot", botSubKey = "online", filter = "all", query = "";
 const botState = {last: null};
 const feed = $("#feed"), other = $("#other");
 const sleep = (ms, ep) => new Promise((res, rej) => setTimeout(() => ep !== epoch ? rej("abort") : res(), ms));
@@ -787,7 +827,8 @@ function setBotPreview(text, unreadBump) {
 
 /* ================= views ================= */
 function setView(v) { app.dataset.view = v; }
-function setSub(s) { botSub = s; if (active === "bot") $("#hSub").textContent = s; }
+const subText = k => ui(k === "typing" ? "typing" : "online");
+function setSub(s) { botSubKey = s === "typing…" ? "typing" : "online"; if (active === "bot") $("#hSub").textContent = subText(botSubKey); }
 function openChat(id) {
   active = id;
   sel.clear(); updateSel();
@@ -796,7 +837,7 @@ function openChat(id) {
   $("#hAv").outerHTML = avatarHtml(c, "s40").replace("<span", '<span id="hAv"');
   $("#hName").textContent = c.name;
   $("#hBadge").hidden = !c.verified;
-  $("#hSub").textContent = id === "bot" ? botSub : (c.group ? c.members : "last seen today at " + c.time);
+  $("#hSub").textContent = id === "bot" ? subText(botSubKey) : (c.group ? c.members : "last seen today at " + c.time);
   const isBot = id === "bot";
   feed.hidden = !isBot; other.hidden = isBot;
   $("#composer").hidden = !isBot; $("#hint").hidden = isBot;
@@ -809,7 +850,7 @@ function otherRows() { return [...other.querySelectorAll(".hrow")]; }
 function updateSel() {
   app.classList.toggle("selmode", sel.size > 0);
   otherRows().forEach(r => r.classList.toggle("sel", sel.has(+r.dataset.i)));
-  $("#selN").textContent = sel.size + " selected";
+  $("#selN").textContent = ui("selected", {n: sel.size});
 }
 function renderOther(c) {
   other.innerHTML = "";
@@ -826,7 +867,7 @@ function renderOther(c) {
     const row = document.createElement("div");
     row.className = "hrow" + (m.out ? " out" : "") + (first && i ? " gap" : "");
     row.dataset.i = i;
-    const label = m.fwd ? (sc && sc.forwarded ? MANY : "Forwarded") : (sc && sc.forwarded ? MANY : "");
+    const label = m.fwd ? (sc && sc.forwarded ? ui("many") : ui("fwd")) : (sc && sc.forwarded ? ui("many") : "");
     const body = sc ? outBody(sc) : fmt(m.text, false);
     const dir = m.out ? "out" : "in";
     row.innerHTML = `<span class="chk"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
@@ -895,13 +936,13 @@ function hideTyping() {
   if (typingRow) { typingRow.remove(); typingRow = null; }
   setSub("online");
 }
-function addButtons(row, labels) {
+function addButtons(row, labels, handler) {
   const box = document.createElement("div");
   box.className = "btns";
   labels.forEach(([label, word]) => {
     const b = document.createElement("button");
     b.type = "button"; b.textContent = label;
-    b.addEventListener("click", () => { box.classList.add("used"); sendTyped(word, label); });
+    b.addEventListener("click", () => { if (handler) handler(word, label); else { box.classList.add("used"); sendTyped(word, label); } });
     box.appendChild(b);
   });
   row.appendChild(box);
@@ -919,7 +960,7 @@ function outBody(sc) {
       <div class="bd"><h4>${esc(sc.shot.head)}</h4><p>${esc(sc.shot.body)}</p></div></div>`;
   }
   if (sc.type === "voice") {
-    return `<div class="voice"><button type="button" class="vplay" aria-label="Play voice note"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+    return `<div class="voice" data-say="${esc(sc.transcript || "")}" data-lang="${sc.lang || "en"}"><button type="button" class="vplay" aria-label="Play voice note"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
       <div class="wave">${waveHtml(7)}</div><div class="mic"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg></div></div><span class="vdur">${sc.dur}</span>`;
   }
   if (sc.type === "pdf") {
@@ -935,6 +976,15 @@ function bindVoice(el) {
   btn.addEventListener("click", () => {
     const bars = [...el.b.querySelectorAll(".wave i")];
     bars.forEach(b => b.classList.remove("on"));
+    try {
+      const v = el.b.querySelector(".voice");
+      if (v && v.dataset.say && window.speechSynthesis) {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(v.dataset.say);
+        u.lang = {mr: "mr-IN", hi: "hi-IN", en: "en-IN"}[v.dataset.lang] || "en-IN"; u.rate = 1.05;
+        speechSynthesis.speak(u);
+      }
+    } catch (e) { /* speech not available */ }
     let i = 0;
     const iv = setInterval(() => { if (i >= bars.length) return clearInterval(iv); bars[i++].classList.add("on"); }, 110);
   });
@@ -970,16 +1020,20 @@ function cardText(c, lang) {
   if (c.wrong) L.push(`*${t("wrong", lang)}:* ${c.wrong[lang]}`);
   if (c.ev.length) {
     L.push(`*${t("evidence", lang)}:*`);
-    c.ev.forEach((e, i) => L.push(`${i + 1}. ${e.src} (${e.date}): “${e.q}”\nhttps://${e.domain}`));
+    c.ev.forEach((e, i) => L.push(`${i + 1}. ${e.src} (${e.date}): “${e.q}”\n${e.url}`));
   }
   L.push(`*${t("summary", lang)}:* ${c.summary[lang]}`);
   return L.join("\n");
 }
 
 let lastTrace = null;
+const seenClaims = new Set();
 async function runCheck(sc, userEl, detected, quote, ep) {
   const lang = prefLang || detected;
-  lastTrace = {sc, lang};
+  const ckey = sc.claims.map(c => c.claim.en).join("|");
+  const cached = seenClaims.has(ckey); seenClaims.add(ckey);
+  lastTrace = {sc, lang, cached};
+  if (liveApi) return runLive({text: liveText(sc)}, userEl, quote, ep);
   await sleep(500, ep); tick(userEl, "delivered");
   await sleep(600, ep); tick(userEl, "read");
   showTyping(); await sleep(700, ep);
@@ -993,8 +1047,8 @@ async function runCheck(sc, userEl, detected, quote, ep) {
   const plan = [
     [STEP1[sc.type], sc.ingest, 800],
     ["Extract claims", `${sc.claims.length} claim${sc.claims.length > 1 ? "s" : ""} found${sc.found ? ` (top ${sc.claims.length} of ${sc.found})` : ""}`, 700],
-    ["Find evidence", nSrc ? `${nSrc} source${nSrc > 1 ? "s" : ""} kept, allowlist only` : "No allowlisted source matched", 1100],
-    ["Judge", `${verdicts}. ${guard[0].toUpperCase() + guard.slice(1)}.`, 900],
+    ["Find evidence", cached ? "Cache hit: same claim checked earlier, no search needed" : (nSrc ? `${nSrc} source${nSrc > 1 ? "s" : ""} kept, allowlist only` : "No allowlisted source matched"), cached ? 250 : 1100],
+    ["Judge", cached ? `${verdicts}. Verdict reused from cache.` : `${verdicts}. ${guard[0].toUpperCase() + guard.slice(1)}.`, cached ? 150 : 900],
     ["Reply", `Sent in ${LANGEN[lang]}`, 500],
   ];
   for (let i = 0; i < plan.length; i++) {
@@ -1012,8 +1066,10 @@ async function runCheck(sc, userEl, detected, quote, ep) {
   msgs[msgs.length - 1] += "\n\n" + t("footer", lang);
 
   for (let i = 0; i < msgs.length; i++) {
-    hideTyping(); addIn(msgs[i]);
+    hideTyping(); const m = addIn(msgs[i]);
     if (i < msgs.length - 1) { showTyping(); await sleep(900, ep); }
+    else quickReplies(m.row, lang, sc.claims.map(c => ({emoji: EMOJI[c.label], label: LABELS[c.label][lang], claim: c.claim[lang] || c.claim.en,
+      summary: c.summary[lang] || c.summary.en})));
   }
 }
 
@@ -1025,7 +1081,7 @@ async function replyPlain(text, ep, userEl, buttons, listBtn) {
   if (listBtn) {
     const lb = document.createElement("button");
     lb.type = "button"; lb.className = "lbtn";
-    lb.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 5h2v2H3V5zm4 0h14v2H7V5zM3 11h2v2H3v-2zm4 0h14v2H7v-2zM3 17h2v2H3v-2zm4 0h14v2H7v-2z"/></svg>View samples';
+    lb.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24"><path d="M3 5h2v2H3V5zm4 0h14v2H7V5zM3 11h2v2H3v-2zm4 0h14v2H7v-2zM3 17h2v2H3v-2zm4 0h14v2H7v-2z"/></svg>' + esc(ui("viewSamples"));
     lb.addEventListener("click", openSheet);
     m.b.appendChild(lb);
   }
@@ -1036,7 +1092,7 @@ async function replyPlain(text, ep, userEl, buttons, listBtn) {
 function sendScenario(key, opts = {}) {
   interacted = true; closeAttach(); closeSheet();
   const sc = SC[key];
-  const label = sc.forwarded ? MANY : (opts.fwd ? "Forwarded" : "");
+  const label = sc.forwarded ? ui("many") : (opts.fwd ? ui("fwd") : "");
   const el = addBubble({dir: "out", body: outBody(sc), forwarded: label, cls: sc.type === "voice" ? "voice-b" : "",
     preview: true});
   bindVoice(el);
@@ -1063,11 +1119,11 @@ function sendTyped(raw, shown, opts = {}) {
   const text = raw.trim(); if (!text) return;
   interacted = true; closeAttach();
   const detected = detectLang(text);
-  const el = addBubble({dir: "out", body: fmt(shown || text, false), forwarded: opts.fwd ? "Forwarded" : ""});
+  const el = addBubble({dir: "out", body: fmt(shown || text, false), forwarded: opts.fwd ? ui("fwd") : ""});
   const r = route(text);
   const lang = prefLang || detected;
   if (r.cmd === "lang") {
-    prefLang = r.v;
+    prefLang = r.v; applyUi();
     enqueue(ep => replyPlain(t("lang_set", r.v), ep, el));
   } else if (r.cmd === "help") {
     enqueue(ep => replyPlain(t("help", lang), ep, el, WELCOME_BTNS));
@@ -1084,7 +1140,8 @@ function sendTyped(raw, shown, opts = {}) {
     } else {
       sc = {...SC[r.sc], type: "text", text: SC[r.sc].text || text, ingest: `Text message · ${LANGEN[detected]}`};
     }
-    enqueue(ep => runCheck(sc, el, detected, {who: "You", text: shown || text}, ep));
+    if (liveApi && r.sc === "_free") enqueue(ep => runLive({text}, el, {who: "You", text: shown || text}, ep));
+    else enqueue(ep => runCheck(sc, el, detected, {who: "You", text: shown || text}, ep));
   }
 }
 
@@ -1112,16 +1169,22 @@ const ATT = [
 ];
 const attachEl = $("#attach");
 attachEl.innerHTML = ATT.map(a => `<button type="button" data-k="${a[2]}"><span class="c" style="background:${a[1]}"><svg width="24" height="24" viewBox="0 0 24 24">${a[3]}</svg></span>${a[0]}</button>`).join("");
-attachEl.addEventListener("click", e => { const b = e.target.closest("button"); if (b) sendScenario(b.dataset.k); });
+attachEl.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (liveApi) { closeAttach(); if (b.dataset.k === "moon") { input.value = "https://"; input.focus(); syncSend(); } else pickFile(b.dataset.k); }
+  else sendScenario(b.dataset.k);
+});
 function closeAttach() { attachEl.hidden = true; $("#attachBtn").setAttribute("aria-expanded", "false"); }
 $("#attachBtn").addEventListener("click", () => {
   attachEl.hidden = !attachEl.hidden;
   $("#attachBtn").setAttribute("aria-expanded", String(!attachEl.hidden));
 });
-$("#camBtn").addEventListener("click", () => sendScenario("pan"));
+$("#camBtn").addEventListener("click", () => { if (liveApi) pickFile("pan"); else sendScenario("pan"); });
 
-$("#opts").innerHTML = SAMPLE_ORDER.map(k => `<button type="button" class="opt" data-k="${k}"><span class="rad"></span><span><span class="o1">${esc(SC[k].title)}</span><br><span class="o2">${esc(SC[k].desc)}</span></span></button>`).join("");
-$("#opts").addEventListener("click", e => { const b = e.target.closest("button"); if (b) sendScenario(b.dataset.k); });
+$("#opts").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.k.startsWith("edge:")) sendEdge(b.dataset.k.slice(5)); else sendScenario(b.dataset.k);
+});
 function openSheet() { $("#scrim").hidden = false; }
 function closeSheet() { $("#scrim").hidden = true; }
 $("#scrim").addEventListener("click", e => { if (e.target.id === "scrim") closeSheet(); });
@@ -1171,14 +1234,14 @@ function seed() {
   feed.innerHTML = ""; botState.last = null; typingRow = null;
   const d = document.createElement("div"); d.className = "date"; d.textContent = "Today"; feed.appendChild(d);
   const s = document.createElement("div"); s.className = "sys";
-  s.textContent = "Prototype: replies and evidence are simulated samples. Nothing in this chat is a real fact-check.";
+  s.textContent = "Prototype: the bot's replies are simulated. Evidence quotes come from real public pages (linked); the forwarded messages are made-up examples.";
   feed.appendChild(s);
   const m = addIn(STR.help.en, {preview: false});
   addButtons(m.row, WELCOME_BTNS);
   const c = chatById("bot"); c.preview = "Hi! I check forwarded messages…"; c.time = "now"; c.unread = 0;
 }
 function reset() {
-  epoch++; prefLang = null; chain = Promise.resolve();
+  epoch++; prefLang = null; chain = Promise.resolve(); applyUi();
   clearInterval(recTimer); $("#composer").classList.remove("recording");
   closeSheet(); setSub("online"); renderSteps(); seed();
   if (active !== "bot") openChat("bot"); else renderList();
@@ -1190,7 +1253,7 @@ function closeCtx() { ctx.hidden = true; }
 document.addEventListener("click", closeCtx);
 function openCtx(pos, i) {
   const c = chatById(active), m = c.msgs[i];
-  ctx.innerHTML = `<button data-a="fwd">Forward</button><button data-a="star">${m.star ? "Unstar" : "Star"}</button><button data-a="sel">Select</button>`;
+  ctx.innerHTML = `<button data-a="fwd">${ui("forward")}</button><button data-a="star">${m.star ? ui("unstar") : ui("star")}</button><button data-a="sel">${ui("select")}</button>`;
   ctx.hidden = false;
   ctx.style.left = Math.max(8, Math.min(pos.left, innerWidth - 190)) + "px";
   ctx.style.top = Math.max(8, Math.min(pos.bottom + 4, innerHeight - 150)) + "px";
@@ -1253,7 +1316,7 @@ $("#dsend").addEventListener("click", () => {
     c.time = time(); c.day = "Today";
     CHATS.splice(CHATS.indexOf(c), 1); CHATS.splice(1, 0, c);
   });
-  toast(items.length > 1 ? "Messages forwarded" : "Message forwarded");
+  toast(items.length > 1 ? ui("toastN") : ui("toast1"));
   if (toBot) {
     openChat("bot");
     items.forEach(m => { if (m.sc) sendScenario(m.sc, {fwd: true}); else sendTyped(m.text, null, {fwd: true}); });
@@ -1279,7 +1342,7 @@ function buildTrace() {
 
   add({nodes: ["phone", "wa"], tag: "WhatsApp", dt: 0, title: "You forward the message",
     desc: "WhatsApp sends it to the business number that ForwardCheck listens on. For the hackathon that is the Twilio WhatsApp sandbox.",
-    phone: {dir: "out", html: outBody(sc), fwd: sc.forwarded ? MANY : "Forwarded"}});
+    phone: {dir: "out", html: outBody(sc), fwd: sc.forwarded ? ui("many") : ui("fwd")}});
 
   const form = {From: "whatsapp:+91XXXXXXXXXX", To: "whatsapp:+14155238886", NumMedia: media ? "1" : "0", Body: clip(bodyText, 150)};
   if (media) { form.MediaUrl0 = "https://api.twilio.com/2010-04-01/Accounts/AC…/Messages/MM…/Media/ME…"; form.MediaContentType0 = media; }
@@ -1324,7 +1387,7 @@ function buildTrace() {
     const suffix = n > 1 ? ` · claim ${i + 1} of ${n}` : "";
     const kw = c.claim.en.replace(/[^\w\s%₹]/g, "").split(/\s+/).filter(w => w.length > 3).slice(0, 6).join(" ");
     const st = STANCE[c.label] || [];
-    const ev = c.ev.map((e, k) => ({id: "e" + (k + 1), source_name: e.src, domain: e.domain, published_at: e.date, snippet: clip(e.q, 90)}));
+    const ev = c.ev.map((e, k) => ({id: "e" + (k + 1), source_name: e.src, domain: e.domain, url: clip(e.url, 80), published_at: e.date, snippet: clip(e.q, 90)}));
     const noise = c.ev.length ? ["healthtipsdaily.example", "viral-news24.example"] : ["viral-news24.example", "dailyforwards.example", "gyaan-hub.example"];
     const lines = [`cache_key = sha256("${lang}|${c.claim.en.toLowerCase().replace(/\W+/g, " ").trim().slice(0, 36)}…")  →  miss`,
       `queries   = ["${kw}", "${clip(c.claim.en, 50)}"]`,
@@ -1332,7 +1395,8 @@ function buildTrace() {
     c.ev.forEach(e => lines.push(`  ✓ ${e.domain.padEnd(18)} on allowlist · ${e.date}`));
     noise.forEach(d => lines.push(`  ✗ ${d.padEnd(18)} not on allowlist, dropped`));
     lines.push(`kept ${c.ev.length} → evidence list`);
-    add({nodes: ["api", "db", "search"], tag: "pipeline.py · check_claim() → retrieve.gather()", dt: 2300, title: "Find evidence" + suffix,
+    if (tr.cached) { lines.length = 0; lines.push(`cache_key = sha256("${lang}|${c.claim.en.toLowerCase().replace(/\W+/g, " ").trim().slice(0, 36)}…")  →  HIT (ttl 24 h)`, "retrieve.gather() skipped: evidence and verdict come from the cache"); }
+    add({nodes: ["api", "db", "search"], tag: "pipeline.py · check_claim() → retrieve.gather()", dt: tr.cached ? 40 : 2300, title: "Find evidence" + suffix + (tr.cached ? " (cache hit)" : ""),
       desc: "The cache is checked first. Then the Google Fact Check API and a web search run, and only trusted domains survive (government, health bodies, fact-checkers, news agencies). The most relevant passage and its date are taken from each page.",
       code: lines.join("\n") + (ev.length ? "\n\n" + J(ev) : "")});
 
@@ -1379,7 +1443,7 @@ function buildTrace() {
 let bkRun = 0;
 function backendIdle() {
   const tr = lastTrace || {sc: SC.health};
-  $("#bkMsg").innerHTML = `<div class="msg out tail" style="max-width:100%;position:relative">${tr.sc.forwarded ? fwdHtml(MANY) : fwdHtml("Forwarded")}${outBody(tr.sc)}<span class="meta">${time()}</span></div>`;
+  $("#bkMsg").innerHTML = `<div class="msg out tail" style="max-width:100%;position:relative">${tr.sc.forwarded ? fwdHtml(ui("many")) : fwdHtml(ui("fwd"))}${outBody(tr.sc)}<span class="meta">${time()}</span></div>`;
 }
 async function playBackend() {
   const run = ++bkRun, btn = $("#bkGo"), tl = $("#tl"), strip = $("#bkStrip"), phone = $("#bkPhone");
@@ -1430,9 +1494,281 @@ function onRoute() {
 addEventListener("hashchange", onRoute);
 $("#mBack").addEventListener("click", () => { location.hash = "#backend"; });
 
+/* ================= UI language (chrome follows the reply language) ================= */
+const UI = {
+  en: {ph: "Type a message", search: "Search or start a new chat", all: "All", unread: "Unread", groups: "Groups", fwdTo: "Forward message to",
+    recent: "Recent chats", dsearch: "Search", forward: "Forward", star: "Star", unstar: "Unstar", select: "Select", selected: "{n} selected",
+    fwd: "Forwarded", many: "Forwarded many times", online: "online", typing: "typing…", toast1: "Message forwarded", toastN: "Messages forwarded",
+    bizinfo: "Business info", clear: "Clear chat", backend: "How it works at the backend", copied: "Result copied",
+    hint: "To check a message, use the arrow beside it to forward it to ForwardCheck.", samples: "Sample forwards", viewSamples: "View samples", edge: "Edge cases",
+    busy: "Server busy (AI service down)", big: "File too large (22 MB)"},
+  hi: {ph: "संदेश लिखें", search: "खोजें या नई चैट शुरू करें", all: "सभी", unread: "अपठित", groups: "ग्रुप", fwdTo: "इन्हें संदेश फ़ॉरवर्ड करें",
+    recent: "हाल की चैट", dsearch: "खोजें", forward: "फ़ॉरवर्ड करें", star: "स्टार करें", unstar: "स्टार हटाएँ", select: "चुनें", selected: "{n} चुने गए",
+    fwd: "फ़ॉरवर्ड किया गया", many: "कई बार फ़ॉरवर्ड किया गया", online: "ऑनलाइन", typing: "टाइप कर रहा है…", toast1: "संदेश फ़ॉरवर्ड हुआ", toastN: "संदेश फ़ॉरवर्ड हुए",
+    bizinfo: "बिज़नेस जानकारी", clear: "चैट साफ़ करें", backend: "बैकएंड पर यह कैसे काम करता है", copied: "नतीजा कॉपी हुआ",
+    hint: "जाँचने के लिए संदेश के पास तीर से उसे ForwardCheck को फ़ॉरवर्ड करें।", samples: "नमूना फ़ॉरवर्ड", viewSamples: "नमूने देखें", edge: "खास स्थितियाँ",
+    busy: "सर्वर व्यस्त (AI सेवा बंद)", big: "फ़ाइल बहुत बड़ी (22 MB)"},
+  mr: {ph: "संदेश लिहा", search: "शोधा किंवा नवीन चॅट सुरू करा", all: "सर्व", unread: "न वाचलेले", groups: "ग्रुप", fwdTo: "यांना संदेश फॉरवर्ड करा",
+    recent: "अलीकडील चॅट", dsearch: "शोधा", forward: "फॉरवर्ड करा", star: "स्टार करा", unstar: "स्टार काढा", select: "निवडा", selected: "{n} निवडले",
+    fwd: "फॉरवर्ड केलेला", many: "अनेकदा फॉरवर्ड केलेला", online: "ऑनलाइन", typing: "टाइप करत आहे…", toast1: "संदेश फॉरवर्ड केला", toastN: "संदेश फॉरवर्ड केले",
+    bizinfo: "बिझनेस माहिती", clear: "चॅट साफ करा", backend: "बॅकएंडवर हे कसे चालते", copied: "निकाल कॉपी केला",
+    hint: "तपासण्यासाठी संदेशाशेजारील बाणाने तो ForwardCheck ला फॉरवर्ड करा.", samples: "नमुना फॉरवर्ड", viewSamples: "नमुने पहा", edge: "विशेष परिस्थिती",
+    busy: "सर्व्हर व्यस्त (AI सेवा बंद)", big: "फाइल खूप मोठी (22 MB)"},
+};
+function ui(k, p) {
+  let s = (UI[prefLang || "en"] || UI.en)[k] || UI.en[k];
+  if (p) for (const [a, b] of Object.entries(p)) s = s.replace("{" + a + "}", b);
+  return s;
+}
+function buildSheet() {
+  const row = k => `<button type="button" class="opt" data-k="${k}"><span class="rad"></span><span><span class="o1">${esc(SC[k].title)}</span><br><span class="o2">${esc(SC[k].desc)}</span></span></button>`;
+  $("#opts").innerHTML = SAMPLE_ORDER.map(row).join("") + `<h3 class="sub">${esc(ui("edge"))}</h3>` +
+    `<button type="button" class="opt" data-k="edge:busy"><span class="rad"></span><span><span class="o1">${esc(ui("busy"))}</span></span></button>` +
+    `<button type="button" class="opt" data-k="edge:big"><span class="rad"></span><span><span class="o1">${esc(ui("big"))}</span></span></button>`;
+}
+function applyUi() {
+  $("#msg").placeholder = ui("ph"); $("#q").placeholder = ui("search");
+  document.querySelectorAll(".fchip").forEach(b => { b.textContent = ui(b.dataset.f === "all" ? "all" : b.dataset.f); });
+  $("#mInfo").textContent = ui("bizinfo"); $("#mBack").textContent = ui("backend"); $("#mClear").textContent = ui("clear"); $("#iClear").textContent = ui("clear");
+  document.querySelector(".dh span").textContent = ui("fwdTo"); document.querySelector(".dsec").textContent = ui("recent");
+  $("#dq").placeholder = ui("dsearch"); document.querySelector("#hint span").textContent = ui("hint");
+  document.querySelector(".sheet h3").textContent = ui("samples");
+  document.querySelector(".ihead b").textContent = ui("bizinfo");
+  $("#selN").textContent = ui("selected", {n: sel.size});
+  if (active === "bot") $("#hSub").textContent = subText(botSubKey);
+  buildSheet();
+}
+
+/* ================= quick-reply buttons under a verdict ================= */
+function quickReplies(row, lang, items) {
+  const share = "✅ " + t("qr_title", lang) + "\n" + items.map(i => `${i.emoji} ${i.label}: ${clip(i.claim, 70)}`).join("\n");
+  const ctxQ = {lang, items, share};
+  addButtons(row, [[t("qr_share", lang), "share"], [t("qr_simple", lang), "simple"], [t("qr_another", lang), "another"]],
+    (kind, label) => onQuick(kind, label, ctxQ));
+}
+function onQuick(kind, label, c) {
+  interacted = true;
+  const el = addBubble({dir: "out", body: fmt(label, false)});
+  enqueue(async ep => {
+    await sleep(400, ep); tick(el, "delivered"); await sleep(400, ep); tick(el, "read");
+    showTyping(); await sleep(800, ep); hideTyping();
+    if (kind === "share") {
+      try { navigator.clipboard.writeText(c.share); } catch (e) { /* clipboard may be blocked */ }
+      addIn(c.share); toast(ui("copied"));
+    } else if (kind === "simple") {
+      addIn(t("simple_pre", c.lang) + "\n" + c.items.map(i => `${i.emoji} ${i.label}: ${i.summary}`).join("\n"));
+    } else addIn(t("another", c.lang));
+  });
+}
+
+/* ================= edge cases ================= */
+function sendEdge(kind) {
+  closeSheet(); interacted = true;
+  let el, sc;
+  if (kind === "busy") { sc = SC.health; el = addBubble({dir: "out", body: outBody(sc), forwarded: ui("many")}); }
+  else { el = addBubble({dir: "out", body: outBody({type: "pdf", file: "Annual_Report_FY23.pdf", pages: 180, size: "22 MB"}), forwarded: ui("fwd")}); }
+  const lang = prefLang || "en";
+  enqueue(async ep => {
+    await sleep(500, ep); tick(el, "delivered"); await sleep(600, ep); tick(el, "read");
+    showTyping(); await sleep(700, ep); hideTyping();
+    addIn(t("checking", lang)); showTyping();
+    renderSteps();
+    if (kind === "busy") {
+      setStep(0, "done", "Read the message", "Text message · English"); await sleep(700, ep);
+      setStep(1, "done", "Extract claims", "1 claim found"); await sleep(700, ep);
+      setStep(2, "active", "Find evidence"); await sleep(900, ep);
+      setStep(2, "err", "Find evidence", "LLM providers returned 503 (rate limited)"); await sleep(500, ep);
+      setStep(4, "done", "Reply", "Friendly error sent, nothing invented");
+      hideTyping(); addIn(t("error", lang));
+    } else {
+      setStep(0, "active", "Read the PDF"); await sleep(700, ep);
+      setStep(0, "err", "Read the PDF", "22 MB is over the 16 MB limit");
+      await sleep(400, ep); hideTyping(); addIn(t("toolarge", lang));
+    }
+  });
+}
+
+/* ================= live mode (real FastAPI backend) ================= */
+let liveApi = "";
+const clipS = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+function setLive(url, status, bad) {
+  liveApi = url;
+  $("#apiSt").textContent = status; $("#apiSt").classList.toggle("bad", !!bad);
+  $("#apiGo").textContent = url ? "Disconnect" : "Connect";
+  document.body.classList.toggle("is-live", !!url);
+  try { url ? localStorage.setItem("fc_api", url) : localStorage.removeItem("fc_api"); } catch (e) { /* storage blocked */ }
+}
+async function connectLive(urlArg) {
+  if (liveApi && !urlArg) { setLive("", "Simulation mode"); return; }
+  const u = (urlArg || $("#apiUrl").value).trim().replace(/\/+$/, "");
+  if (!u) return;
+  $("#apiUrl").value = u; $("#apiSt").textContent = "Connecting…";
+  try {
+    const r = await fetch(u + "/api/health"); const j = await r.json();
+    if (!j.ok) throw new Error("not ok");
+    setLive(u, "Live · " + ((j.llm_providers || []).join(", ") || "connected"));
+    toast("Live backend connected");
+  } catch (e) {
+    setLive("", "Could not reach that server. It must be https and allow CORS.", true);
+  }
+}
+const liveText = sc => sc.text || sc.url || sc.ocr || sc.transcript || sc.claims.map(c => c.claim.en).join(". ");
+function liveCard(r, lang) {
+  const v = r.verdict, L = [`*${t("claim", lang)}:* ${clipS(r.claim.text, 220)}`,
+    `*${t("verdict", lang)}:* ${EMOJI[v.label]} ${LABELS[v.label][lang]}`];
+  if (v.what_is_wrong) L.push(`*${t("wrong", lang)}:* ${clipS(v.what_is_wrong, 380)}`);
+  const cited = (r.evidence || []).filter(e => (v.evidence_ids || []).includes(e.id)).slice(0, 3);
+  if (cited.length) {
+    L.push(`*${t("evidence", lang)}:*`);
+    cited.forEach((e, i) => L.push(`${i + 1}. ${e.source_name}${e.published_at ? ` (${e.published_at})` : ""}: “${clipS(e.snippet, 140)}”\n${e.url}`));
+  }
+  if (v.summary && v.summary !== v.what_is_wrong) L.push(`*${t("summary", lang)}:* ${clipS(v.summary, 260)}`);
+  return L.join("\n");
+}
+async function runLive(payload, userEl, quote, ep) {
+  const lang0 = prefLang || "en";
+  await sleep(300, ep); tick(userEl, "delivered"); await sleep(300, ep); tick(userEl, "read");
+  showTyping(); await sleep(400, ep); hideTyping();
+  addIn(t("checking", lang0), {quote}); showTyping();
+  renderSteps(); setStep(0, "active");
+  const fail = msg => { hideTyping(); addIn(msg || t("error", lang0)); setStep(4, "err", "Reply", msg || "request failed"); };
+  const fd = new FormData();
+  if (payload.text) fd.append("text", payload.text);
+  if (payload.file) fd.append("file", payload.file);
+  if (prefLang) fd.append("language", prefLang);
+  let resp;
+  try { resp = await fetch(liveApi + "/api/check/stream", {method: "POST", body: fd}); }
+  catch (e) { return fail(t("error", lang0)); }
+  if (!resp.ok) { let j = {}; try { j = await resp.json(); } catch (e) { /* not json */ } return fail(j.error || t("error", lang0)); }
+  const reader = resp.body.getReader(), dec = new TextDecoder();
+  let buf = "", lang = lang0, results = [], inputType = "text", preview = "", note = "";
+  const handle = ev => {
+    if (ep !== epoch) return;
+    if (ev.event === "stage") {
+      if (ev.stage === "claims") { inputType = ev.input_type || inputType; preview = ev.preview || ""; setStep(0, "done", null, `${inputType} read`); setStep(1, "active"); }
+      if (ev.stage === "evidence") setStep(2, "active");
+    } else if (ev.event === "claims") {
+      lang = prefLang || ev.language || lang;
+      setStep(1, "done", null, `${ev.claims.length} claim${ev.claims.length === 1 ? "" : "s"} found`); setStep(2, "active");
+    } else if (ev.event === "result") {
+      results.push(ev.result); setStep(3, "active");
+      setStep(2, "done", null, `${results.reduce((n, r) => n + (r.evidence || []).length, 0)} sources so far${ev.result.cached ? " (cache hit)" : ""}`);
+    } else if (ev.event === "done") {
+      note = (ev.summary && ev.summary.note) || "";
+      setStep(3, "done", null, results.map(r => LABELS[r.verdict.label].en).join(", "));
+    } else if (ev.event === "error") { buf = "ERR:" + ev.message; }
+  };
+  for (;;) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, {stream: true});
+    let i;
+    while ((i = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+      if (line) { try { handle(JSON.parse(line)); } catch (e) { /* skip bad line */ } }
+    }
+    if (buf.startsWith("ERR:")) return fail(buf.slice(4));
+  }
+  if (ep !== epoch) return;
+  const msgs = [];
+  if (!results.length) msgs.push(t("no_claims", lang));
+  else {
+    if (inputType === "audio") msgs.push(`🎙️ *${t("heard", lang)}:*\n“${clipS(preview, 220)}”`);
+    if (inputType === "image") msgs.push(`🖼️ *${t("ocr", lang)}:*\n“${clipS(preview, 220)}”`);
+    if (note && /Found \d+ claims/.test(note)) msgs.push(note);
+    results.forEach(r => msgs.push(liveCard(r, lang)));
+  }
+  msgs[msgs.length - 1] += "\n\n" + t("footer", lang);
+  setStep(4, "done", null, `Sent in ${LANGEN[lang]}`);
+  for (let k = 0; k < msgs.length; k++) {
+    hideTyping(); const m = addIn(msgs[k]);
+    if (k < msgs.length - 1) { showTyping(); await sleep(700, ep); }
+    else if (results.length) quickReplies(m.row, lang, results.map(r => ({emoji: EMOJI[r.verdict.label], label: LABELS[r.verdict.label][lang],
+      claim: r.claim.text, summary: r.verdict.summary || r.verdict.what_is_wrong || ""})));
+  }
+}
+$("#apiGo").addEventListener("click", () => connectLive());
+
+/* real file picker in live mode */
+const fileIn = document.createElement("input");
+fileIn.type = "file"; fileIn.hidden = true; document.body.appendChild(fileIn);
+fileIn.addEventListener("change", () => {
+  const f = fileIn.files[0]; fileIn.value = ""; if (!f) return;
+  interacted = true; closeAttach();
+  let body;
+  if (f.size > 16 * 1024 * 1024) {
+    const el = addBubble({dir: "out", body: outBody({type: "pdf", file: f.name, pages: "?", size: (f.size / 1048576).toFixed(0) + " MB"})});
+    enqueue(async ep => { await sleep(600, ep); tick(el, "read"); showTyping(); await sleep(600, ep); hideTyping(); addIn(t("toolarge", prefLang || "en")); });
+    return;
+  }
+  if (f.type.startsWith("image/")) body = `<div class="shot"><img alt="" src="${URL.createObjectURL(f)}" style="display:block;width:100%"></div>`;
+  else body = `<div class="doc"><div class="ico">${f.type.startsWith("audio/") ? "♪" : "PDF"}</div><div><div class="nm">${esc(f.name)}</div><div class="sb">${(f.size / 1024).toFixed(0)} kB</div></div></div>`;
+  const el = addBubble({dir: "out", body, forwarded: ""});
+  enqueue(ep => runLive({file: f}, el, {who: "You", text: "📎 " + f.name}, ep));
+});
+function pickFile(kind) {
+  fileIn.accept = kind === "pdf" ? ".pdf,application/pdf" : kind === "upi" ? "audio/*" : "image/*";
+  fileIn.click();
+}
+
+/* ================= coach mark + guided tour ================= */
+let tourRun = 0;
+function hideCoach() { $("#coach").hidden = true; try { sessionStorage.setItem("fc_coach", "1"); } catch (e) { /* ignore */ } }
+$("#coachX").addEventListener("click", hideCoach);
+$("#coachTour").addEventListener("click", () => { hideCoach(); startTour(); });
+async function startTour() {
+  const run = ++tourRun, bar = $("#tourbar");
+  const say = s => { $("#tourT").textContent = s; };
+  const wait = ms => new Promise((res, rej) => setTimeout(() => run === tourRun ? res() : rej("stop"), ms));
+  const end = () => { bar.hidden = true; };
+  bar.hidden = false; interacted = true;
+  try {
+    location.hash = "#chat"; reset();
+    openChat("fam"); say("A relative forwards a health 'cure' in the family group.");
+    await wait(2600);
+    say("Long-press the message (or use the chevron) and choose Select, then the forward arrow.");
+    enterSel(1); await wait(2600);
+    openForward([1]); say("Pick ForwardCheck as the chat to forward to.");
+    await wait(2200);
+    fwdSel.add("bot"); renderDlg(); say("Press send."); await wait(1600);
+    $("#dsend").click();
+    say("The bot reads the message, finds evidence on trusted sites and judges the claim.");
+    await wait(1200); await chain; await wait(1500);
+    say("Now the backend: what happened behind that chat.");
+    await wait(2200);
+    location.hash = "#backend"; await wait(700);
+    say("Each card is one real stage of the server, with the data passed along.");
+    await playBackend(); await wait(600);
+    say("That is the whole loop. Use Back to chat to try your own forward.");
+    await wait(4200);
+  } catch (e) { if (e !== "stop") console.error(e); }
+  if (run === tourRun) end();
+}
+$("#tourSkip").addEventListener("click", () => { tourRun++; $("#tourbar").hidden = true; });
+$("#mTour").addEventListener("click", startTour);
+
+/* keyboard: Esc closes the top-most layer */
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  if (!$("#dlg").hidden) closeDlg();
+  else if (!$("#scrim").hidden) closeSheet();
+  else if (!ctx.hidden) closeCtx();
+  else if (sel.size) { sel.clear(); updateSel(); }
+  else if (!attachEl.hidden) closeAttach();
+});
+
 /* boot */
 renderSteps(); seed(); syncSend(); openChat("bot");
 if (wide() && innerWidth >= 1280) app.classList.add("info-open");
+applyUi();
+try {
+  const q = new URLSearchParams(location.search).get("api") || localStorage.getItem("fc_api");
+  if (q) connectLive(q);
+} catch (e) { /* storage blocked */ }
+setTimeout(() => {
+  let seen = false; try { seen = sessionStorage.getItem("fc_coach") === "1"; } catch (e) { /* ignore */ }
+  if (!seen && location.hash !== "#backend" && $("#tourbar").hidden) $("#coach").hidden = false;
+}, 3500);
 onRoute();
 setTimeout(() => { if (!interacted && epoch === 0 && active === "bot" && location.hash !== "#backend") sendScenario("health"); }, 1600);
 })();
